@@ -16,6 +16,11 @@ public class ConverterTest {
   void convertValueEnum() {
     assertThat(converter.convert(RoleWithValues.class)).isEqualTo("enum RoleWithValues {ADMIN = 'admin', USER = 'user'}");
   }
+
+  @Test
+  void modelClass() {
+    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: Role;}");
+  }
 }
 
 enum Role {
@@ -35,4 +40,10 @@ enum RoleWithValues {
   public String toString() {
     return s;
   }
+}
+
+class Model {
+  String name;
+  int age;
+  Role role;
 }
