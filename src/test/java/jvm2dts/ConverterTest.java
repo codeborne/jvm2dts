@@ -21,6 +21,28 @@ public class ConverterTest {
   void modelClass() {
     assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: Role;}");
   }
+
+  @Test
+  void primitiveNumbers() {
+    assertThat(converter.convert(NumbersPrimitive.class)).isEqualTo("interface NumbersPrimitive {" +
+            "aByte: number; " +
+            "aShort: number; " +
+            "anInt: number; " +
+            "aLong: number; " +
+            "aFloat: number; " +
+            "aDouble: number;}");
+  }
+
+  @Test
+  void objectNumbers() {
+    assertThat(converter.convert(NumbersObjects.class)).isEqualTo("interface NumbersObjects {" +
+            "aByte: number; " +
+            "aShort: number; " +
+            "anInteger: number; " +
+            "aLong: number; " +
+            "aFloat: number; " +
+            "aDouble: number;}");
+  }
 }
 
 enum Role {
@@ -46,4 +68,22 @@ class Model {
   String name;
   int age;
   Role role;
+}
+
+class NumbersPrimitive {
+  byte aByte;
+  short aShort;
+  int anInt;
+  long aLong;
+  float aFloat;
+  double aDouble;
+}
+
+class NumbersObjects {
+  Byte aByte;
+  Short aShort;
+  Integer anInteger;
+  Long aLong;
+  Float aFloat;
+  Double aDouble;
 }
