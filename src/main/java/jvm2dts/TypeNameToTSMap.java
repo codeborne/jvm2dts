@@ -1,29 +1,24 @@
 package jvm2dts;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 public class TypeNameToTSMap {
-  private static final HashMap<String, String> typeNameToTS = new HashMap<>();
+  private static final HashMap<Class<?>, String> typeNameToTS = new HashMap<>();
 
   static {
-    typeNameToTS.put("byte", "number");
-    typeNameToTS.put("short", "number");
-    typeNameToTS.put("int", "number");
-    typeNameToTS.put("long", "number");
-    typeNameToTS.put("float", "number");
-    typeNameToTS.put("double", "number");
-
-    typeNameToTS.put("Byte", "number");
-    typeNameToTS.put("Short", "number");
-    typeNameToTS.put("Integer", "number");
-    typeNameToTS.put("Long", "number");
-    typeNameToTS.put("Float", "number");
-    typeNameToTS.put("Double", "number");
-
-    typeNameToTS.put("String", "string");
+    typeNameToTS.put(byte.class, "number");
+    typeNameToTS.put(short.class, "number");
+    typeNameToTS.put(int.class, "number");
+    typeNameToTS.put(long.class, "number");
+    typeNameToTS.put(float.class, "number");
+    typeNameToTS.put(double.class, "number");
+    typeNameToTS.put(Number.class, "number");
+    typeNameToTS.put(String.class, "string");
+    typeNameToTS.put(UUID.class, "string");
   }
 
-  public static String getTSType(String javaTypeName) {
-    return typeNameToTS.getOrDefault(javaTypeName, javaTypeName);
+  public static String getTSType(Class<?> javaType) {
+    return typeNameToTS.getOrDefault(javaType, typeNameToTS.getOrDefault(javaType.getSuperclass(), javaType.getSimpleName()));
   }
 }

@@ -21,7 +21,7 @@ public class ClassConverter {
         output
                 .append(field.getName())
                 .append(": ")
-                .append(TypeNameToTSMap.getTSType(field.getType().getSimpleName()));
+                .append(TypeNameToTSMap.getTSType(field.getType()));
 
         if (i + 1 < fields.length)
           output.append("; ");
