@@ -11,6 +11,10 @@ public class ConverterTest {
   void convertEnum() {
     assertThat(converter.convert(Role.class)).isEqualTo("enum {ADMIN = 'ADMIN', USER = 'USER'}");
   }
+
+//  @Test void convertValueEnum() {
+//    assertThat(converter.convert(RoleWithValues.class)).isEqualTo("something");
+//  }
 }
 
 enum Role {
