@@ -1,11 +1,9 @@
 package jvm2dts.types;
 
-import jvm2dts.Converter;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class EnumConverter extends Converter {
+public class EnumConverter {
   Logger logger = Logger.getLogger(this.getClass().getName());
 
   public String convert(Class<?> clazz) {
