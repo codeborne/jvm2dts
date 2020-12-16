@@ -52,7 +52,7 @@ enum Role {
 enum RoleWithValues {
   ADMIN("admin"), USER("user");
 
-  private String s;
+  private final String s;
 
   RoleWithValues(String s) {
     this.s = s;
