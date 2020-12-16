@@ -43,7 +43,6 @@ public class ClassConverter {
             }
             output.append("}");
           }
-          logger.info(genericType.toString());
         } catch (ClassCastException e) {
           output
             .append(field.getName())
@@ -56,8 +55,7 @@ public class ClassConverter {
         else
           output.append(";");
       }
-    } catch (
-      Exception e) {
+    } catch (Exception e) {
       logger.warning(e.toString());
     }
 
