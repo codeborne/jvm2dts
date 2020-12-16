@@ -3,7 +3,8 @@ package jvm2dts.types;
 import jvm2dts.TypeNameToTSMap;
 
 import java.lang.reflect.Field;
-import java.util.logging.Level;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.logging.Logger;
 
 public class ClassConverter {
@@ -18,18 +19,46 @@ public class ClassConverter {
       Field[] fields = clazz.getDeclaredFields();
       for (int i = 0; i < fields.length; i++) {
         Field field = fields[i];
-        output
-                .append(field.getName())
-                .append(": ")
-                .append(TypeNameToTSMap.getTSType(field.getType()));
+
+        try {
+          ParameterizedType genericType = (ParameterizedType) field.getGenericType();
+          Type[] parameterTypes = genericType.getActualTypeArguments();
+          output
+            .append(field.getName())
+            .append(": ");
+          if (parameterTypes.length <= 1) {
+            output
+              .append(TypeNameToTSMap.getTSType((Class<?>) parameterTypes[0]))
+              .append("[]");
+          } else {
+            output.append("{");
+            for (int j = 0; j < parameterTypes.length; j = +2) {
+              Type key = parameterTypes[j];
+              Type value = parameterTypes[j + 1];
+              output
+                .append("[key: ")
+                .append(TypeNameToTSMap.getTSType((Class<?>) key))
+                .append("]: ")
+                .append(TypeNameToTSMap.getTSType((Class<?>) value));
+            }
+            output.append("}");
+          }
+          logger.info(genericType.toString());
+        } catch (ClassCastException e) {
+          output
+            .append(field.getName())
+            .append(": ")
+            .append(TypeNameToTSMap.getTSType(field.getType()));
+        }
 
         if (i + 1 < fields.length)
           output.append("; ");
         else
           output.append(";");
       }
-    } catch (Exception e) {
-      logger.log(Level.WARNING, e.toString());
+    } catch (
+      Exception e) {
+      logger.warning(e.toString());
     }
 
     output.append("}");
