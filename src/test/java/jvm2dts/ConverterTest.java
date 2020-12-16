@@ -9,12 +9,13 @@ public class ConverterTest {
 
   @Test
   void convertEnum() {
-    assertThat(converter.convert(Role.class)).isEqualTo("enum {ADMIN = 'ADMIN', USER = 'USER'}");
+    assertThat(converter.convert(Role.class)).isEqualTo("enum Role {ADMIN = 'ADMIN', USER = 'USER'}");
   }
 
-//  @Test void convertValueEnum() {
-//    assertThat(converter.convert(RoleWithValues.class)).isEqualTo("something");
-//  }
+  @Test
+  void convertValueEnum() {
+    assertThat(converter.convert(RoleWithValues.class)).isEqualTo("enum RoleWithValues {ADMIN = 'admin', USER = 'user'}");
+  }
 }
 
 enum Role {
@@ -30,7 +31,8 @@ enum RoleWithValues {
     this.s = s;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return s;
   }
 }

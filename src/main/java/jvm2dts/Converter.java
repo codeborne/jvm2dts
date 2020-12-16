@@ -12,7 +12,7 @@ public class Converter {
     StringBuilder output = new StringBuilder();
 
     if (clazz.isEnum()) {
-      output.append("enum {");
+      output.append("enum ").append(clazz.getSimpleName()).append(" {");
       try {
         Object[] enumConstants = clazz.getEnumConstants();
         for (int i = 0; i < enumConstants.length; i++) {
@@ -27,9 +27,6 @@ public class Converter {
       output.append("}");
     }
 
-    for (Field field : clazz.getFields()) {
-      logger.info(field.getName() + " " + field.getType());
-    }
     return output.toString();
   }
 
