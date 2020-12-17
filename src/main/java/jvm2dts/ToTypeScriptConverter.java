@@ -5,7 +5,5 @@ import java.util.logging.Logger;
 public interface ToTypeScriptConverter {
   Logger logger = Logger.getLogger(ToTypeScriptConverter.class.getName());
 
-  default String convert(Class<?> clazz) {
-    return "";
-  }
+  String convert(Class<?> clazz);
 }
