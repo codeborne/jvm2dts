@@ -7,7 +7,7 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     if (args.length < 1) {
-      System.err.println("Usage: " + Main.class.getPackage().getName() + " -classpath program:path/to/package package");
+      System.err.println("Usage: java -classpath program:path/to/package " + Main.class.getName() + " <package>");
       System.exit(1);
     }
 
