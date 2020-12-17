@@ -16,11 +16,12 @@ public class Main {
     Converter converter = new Converter();
     URL packageUrl = Main.class.getClassLoader().getResource(packageArg);
     if (packageUrl.getProtocol().equals("file")) {
-      ClassLoader cl = new URLClassLoader(new URL[]{packageUrl.toURI().toURL()});
       for (File file : new File(packageUrl.getPath()).listFiles()) {
+        URL[] urls = new URL[]{file.toURI().toURL()};
+        ClassLoader cl = new URLClassLoader(urls);
+
         System.out.println(file.toString());
-        System.out.println(file.toPath().toString());
-        System.out.println(converter.convert(cl.loadClass(file.getName())));
+        System.out.println(converter.convert(Class.forName(file.getName())));
       }
     }
   }
