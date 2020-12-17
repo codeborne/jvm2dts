@@ -2,7 +2,7 @@ package jvm2dts;
 
 import jvm2dts.types.EnumConverter;
 
-public class Converter {
+public class Converter implements AbstractConverter {
   final EnumConverter enumConverter = new EnumConverter();
   final jvm2dts.types.ClassConverter classConverter = new jvm2dts.types.ClassConverter();
 

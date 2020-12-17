@@ -1,15 +1,13 @@
 package jvm2dts.types;
 
+import jvm2dts.AbstractConverter;
 import jvm2dts.TypeNameToTSMap;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.logging.Logger;
 
-public class ClassConverter {
-  Logger logger = Logger.getLogger(this.getClass().getName());
-
+public class ClassConverter implements AbstractConverter {
   public String convert(Class<?> clazz) {
     StringBuilder output = new StringBuilder();
 

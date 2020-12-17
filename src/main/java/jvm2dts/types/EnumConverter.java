@@ -1,11 +1,10 @@
 package jvm2dts.types;
 
+import jvm2dts.AbstractConverter;
+
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class EnumConverter {
-  Logger logger = Logger.getLogger(this.getClass().getName());
-
+public class EnumConverter implements AbstractConverter {
   public String convert(Class<?> clazz) {
     StringBuilder output = new StringBuilder();
 
