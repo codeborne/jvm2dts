@@ -24,7 +24,8 @@ public class Main {
 
         try {
           System.out.println(converter.convert(Class.forName(path)));
-        } catch (ClassNotFoundException ignored) {
+        } catch (ClassNotFoundException e) {
+          System.err.println("Failed to load: " + e);
         }
       }
   }
