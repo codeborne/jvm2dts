@@ -8,7 +8,7 @@ public class Main {
   public static void main(String[] args) throws Exception {
     if (args.length < 1) {
       System.err.println("Usage: " + Main.class.getPackage().getName() + " -classpath program:path/to/package package");
-      throw new IllegalStateException("Not enough arguments");
+      System.exit(1);
     }
 
     String packageName = args[0];
