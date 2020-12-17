@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="jvm2dts.Main" />
+    <module name="jvm2dts.main" />
+    <option name="PROGRAM_PARAMETERS" value="jvm2dts" />
+    <option name="VM_PARAMETERS" value="-cp jvm2dts:jvm2dts" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

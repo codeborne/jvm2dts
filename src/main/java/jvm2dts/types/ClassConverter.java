@@ -4,6 +4,7 @@ import jvm2dts.AbstractConverter;
 import jvm2dts.TypeNameToTSMap;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
@@ -17,6 +18,7 @@ public class ClassConverter implements AbstractConverter {
       Field[] fields = clazz.getDeclaredFields();
       for (int i = 0; i < fields.length; i++) {
         Field field = fields[i];
+        if ((field.getModifiers() & Modifier.PRIVATE) == 0x02) continue;
 
         try {
           ParameterizedType genericType = (ParameterizedType) field.getGenericType();
