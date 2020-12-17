@@ -2,7 +2,7 @@ package jvm2dts;
 
 import jvm2dts.types.EnumConverter;
 
-public class Converter implements AbstractConverter {
+public class Converter implements ToTypeScriptConverter {
   final EnumConverter enumConverter = new EnumConverter();
   final jvm2dts.types.ClassConverter classConverter = new jvm2dts.types.ClassConverter();
 

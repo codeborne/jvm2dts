@@ -2,8 +2,8 @@ package jvm2dts;
 
 import java.util.logging.Logger;
 
-public interface AbstractConverter {
-  Logger logger = Logger.getLogger(AbstractConverter.class.getName());
+public interface ToTypeScriptConverter {
+  Logger logger = Logger.getLogger(ToTypeScriptConverter.class.getName());
 
   default String convert(Class<?> clazz) {
     return "";

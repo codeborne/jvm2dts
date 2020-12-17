@@ -1,10 +1,10 @@
 package jvm2dts.types;
 
-import jvm2dts.AbstractConverter;
+import jvm2dts.ToTypeScriptConverter;
 
 import java.util.logging.Level;
 
-public class EnumConverter implements AbstractConverter {
+public class EnumConverter implements ToTypeScriptConverter {
   public String convert(Class<?> clazz) {
     StringBuilder output = new StringBuilder();
 

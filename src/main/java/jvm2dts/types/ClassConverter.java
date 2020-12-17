@@ -1,6 +1,6 @@
 package jvm2dts.types;
 
-import jvm2dts.AbstractConverter;
+import jvm2dts.ToTypeScriptConverter;
 import jvm2dts.TypeNameToTSMap;
 
 import java.lang.reflect.Field;
@@ -8,7 +8,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-public class ClassConverter implements AbstractConverter {
+public class ClassConverter implements ToTypeScriptConverter {
   public String convert(Class<?> clazz) {
     StringBuilder output = new StringBuilder();
 
