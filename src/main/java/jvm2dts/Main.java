@@ -3,12 +3,14 @@ package jvm2dts;
 import java.io.File;
 import java.net.URL;
 
+import static java.lang.System.*;
+
 public class Main {
 
   public static void main(String[] args) throws Exception {
     if (args.length < 1) {
-      System.err.println("Usage: java -classpath program:path/to/package " + Main.class.getName() + " <package>");
-      System.exit(1);
+      err.println("Usage: java -classpath program:path/to/package " + Main.class.getName() + " <package>");
+      exit(1);
     }
 
     String packageName = args[0];
@@ -23,9 +25,9 @@ public class Main {
         path = path.replaceFirst(".*/" + packageName, packageName).split("\\.")[0].replace("/", ".");
 
         try {
-          System.out.println(converter.convert(Class.forName(path)));
+          out.println(converter.convert(Class.forName(path)));
         } catch (ClassNotFoundException e) {
-          System.err.println("Failed to load: " + e);
+          err.println("Failed to load: " + e);
         }
       }
   }
