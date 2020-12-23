@@ -30,5 +30,7 @@ public class Main {
           err.println("Failed to load: " + e);
         }
       }
+    else
+      err.println("Cannot load " + packageUrl + ": unsupported protocol");
   }
 }
