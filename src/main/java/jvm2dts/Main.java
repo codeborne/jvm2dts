@@ -16,7 +16,7 @@ public class Main {
     String packageName = args[0];
     Converter converter = new Converter();
 
-    URL packageUrl = Main.class.getClassLoader().getResource(packageName);
+    URL packageUrl = Main.class.getClassLoader().getResource(packageName.replace('.', '/'));
     if (packageUrl == null) {
       err.println("Cannot load " + packageName + " using ClassLoader, missing from classpath?");
       exit(2);
@@ -24,13 +24,12 @@ public class Main {
 
     if (packageUrl.getProtocol().equals("file")) {
       for (File file : new File(packageUrl.getPath()).listFiles(f -> f.getName().endsWith(".class"))) {
-
-        String path = file.getPath();
-        path = path.replaceFirst(".*/" + packageName, packageName).split("\\.")[0].replace("/", ".");
+        String name = file.getName();
+        name = name.substring(0, name.lastIndexOf('.'));
 
         try {
-          out.println(converter.convert(Class.forName(path)));
-        } catch (ClassNotFoundException e) {
+          out.println(converter.convert(Class.forName(packageName + "." + name)));
+        } catch (Throwable e) {
           err.println("Failed to load: " + e);
         }
       }
