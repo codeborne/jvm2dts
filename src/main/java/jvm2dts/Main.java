@@ -2,8 +2,11 @@ package jvm2dts;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import static java.lang.System.*;
+import static java.util.Comparator.comparing;
 
 public class Main {
 
@@ -23,16 +26,21 @@ public class Main {
     }
 
     if (packageUrl.getProtocol().equals("file")) {
-      for (File file : new File(packageUrl.getPath()).listFiles(f -> f.getName().endsWith(".class"))) {
-        String name = file.getName();
-        name = name.substring(0, name.lastIndexOf('.'));
-
+      Arrays.stream(new File(packageUrl.getPath()).listFiles())
+      .filter(f -> f.getName().endsWith(".class"))
+      .map(f -> packageName + "." + f.getName().substring(0, f.getName().lastIndexOf('.')))
+      .sorted().forEach(className -> {
         try {
-          out.println(converter.convert(Class.forName(packageName + "." + name)));
+          String converted = converter.convert(Class.forName(className));
+          if (!converted.isEmpty()) {
+            out.print("// ");
+            out.println(className);
+            out.println(converted);
+          }
         } catch (Throwable e) {
           err.println("Failed to load: " + e);
         }
-      }
+      });
     } else {
       err.println("Cannot load " + packageUrl + ": unsupported protocol");
       exit(3);
