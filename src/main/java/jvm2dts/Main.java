@@ -17,9 +17,13 @@ public class Main {
     Converter converter = new Converter();
 
     URL packageUrl = Main.class.getClassLoader().getResource(packageName);
+    if (packageUrl == null) {
+      err.println("Cannot load " + packageName + " using ClassLoader, missing from classpath?");
+      exit(2);
+    }
 
-    if (packageUrl.getProtocol().equals("file"))
-      for (File file : new File(packageUrl.toURI()).listFiles()) {
+    if (packageUrl.getProtocol().equals("file")) {
+      for (File file : new File(packageUrl.getPath()).listFiles(f -> f.getName().endsWith(".class"))) {
 
         String path = file.getPath();
         path = path.replaceFirst(".*/" + packageName, packageName).split("\\.")[0].replace("/", ".");
@@ -30,7 +34,9 @@ public class Main {
           err.println("Failed to load: " + e);
         }
       }
-    else
+    } else {
       err.println("Cannot load " + packageUrl + ": unsupported protocol");
+      exit(3);
+    }
   }
 }
