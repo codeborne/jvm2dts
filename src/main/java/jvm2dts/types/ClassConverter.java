@@ -9,6 +9,8 @@ import java.lang.reflect.Type;
 
 public class ClassConverter implements ToTypeScriptConverter {
   public String convert(Class<?> clazz) {
+    if (clazz.getSimpleName().isEmpty()) return "";
+
     StringBuilder output = new StringBuilder();
 
     output.append("interface ").append(clazz.getSimpleName()).append(" {");
