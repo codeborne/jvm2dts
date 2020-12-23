@@ -2,6 +2,7 @@ package jvm2dts;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -18,8 +19,9 @@ public class TypeNameToTSMap {
     typeNameToTS.put(Number.class, "number");
     typeNameToTS.put(String.class, "string");
     typeNameToTS.put(UUID.class, "string");
-    typeNameToTS.put(Instant.class, "Date");
-    typeNameToTS.put(LocalDate.class, "Date");
+    typeNameToTS.put(Date.class, "Date|string");
+    typeNameToTS.put(Instant.class, "Date|string");
+    typeNameToTS.put(LocalDate.class, "Date|string");
   }
 
   public static String getTSType(Class<?> javaType) {
