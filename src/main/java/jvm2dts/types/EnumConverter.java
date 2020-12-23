@@ -4,11 +4,11 @@ import jvm2dts.ToTypeScriptConverter;
 
 import java.util.logging.Level;
 
+import static jvm2dts.NameConverter.getName;
+
 public class EnumConverter implements ToTypeScriptConverter {
   public String convert(Class<?> clazz) {
-    String name = clazz.getName();
-    name = name.substring(name.lastIndexOf('.') + 1).replace("$", "");
-    StringBuilder output = new StringBuilder("enum ").append(name).append(" {");
+    StringBuilder output = new StringBuilder("enum ").append(getName(clazz)).append(" {");
 
     try {
       Object[] enumConstants = clazz.getEnumConstants();

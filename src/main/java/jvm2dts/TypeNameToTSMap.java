@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static jvm2dts.NameConverter.getName;
+
 public class TypeNameToTSMap {
   private static final HashMap<Class<?>, String> typeNameToTS = new HashMap<>();
 
@@ -25,6 +27,6 @@ public class TypeNameToTSMap {
   }
 
   public static String getTSType(Class<?> javaType) {
-    return typeNameToTS.getOrDefault(javaType, typeNameToTS.getOrDefault(javaType.getSuperclass(), javaType.getSimpleName()));
+    return typeNameToTS.getOrDefault(javaType, typeNameToTS.getOrDefault(javaType.getSuperclass(), getName(javaType)));
   }
 }

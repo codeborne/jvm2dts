@@ -10,7 +10,7 @@ class ClassConverterTest {
 
   @Test
   void modelClass() {
-    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: Role;}");
+    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole;}");
   }
 
   @Test
@@ -35,16 +35,6 @@ class ClassConverterTest {
       "aDouble: number;}");
   }
 
-  enum Role {
-    ADMIN, USER
-  }
-
-  static class Model {
-    String name;
-    int age;
-    Role role;
-  }
-
   static class NumbersPrimitive {
     byte aByte;
     short aShort;
@@ -61,5 +51,15 @@ class ClassConverterTest {
     Long aLong;
     Float aFloat;
     Double aDouble;
+  }
+}
+
+class Model {
+  String name;
+  int age;
+  Role role;
+
+  enum Role {
+    HELLO, WORLD
   }
 }
