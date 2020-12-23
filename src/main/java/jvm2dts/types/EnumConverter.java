@@ -6,9 +6,9 @@ import java.util.logging.Level;
 
 public class EnumConverter implements ToTypeScriptConverter {
   public String convert(Class<?> clazz) {
-    StringBuilder output = new StringBuilder();
-
-    output.append("enum ").append(clazz.getSimpleName()).append(" {");
+    String name = clazz.getName();
+    name = name.substring(name.lastIndexOf('.') + 1).replace("$", "");
+    StringBuilder output = new StringBuilder("enum ").append(name).append(" {");
 
     try {
       Object[] enumConstants = clazz.getEnumConstants();

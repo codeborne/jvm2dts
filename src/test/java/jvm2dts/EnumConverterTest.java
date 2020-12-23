@@ -10,7 +10,7 @@ class EnumConverterTest {
 
   @Test
   void convertEnum() {
-    assertThat(converter.convert(Role.class)).isEqualTo("enum Role {ADMIN = 'ADMIN', USER = 'USER'}");
+    assertThat(converter.convert(Role.class)).isEqualTo("enum EnumConverterTestRole {ADMIN = 'ADMIN', USER = 'USER'}");
   }
 
   @Test
@@ -21,20 +21,20 @@ class EnumConverterTest {
   enum Role {
     ADMIN, USER
   }
+}
 
-  enum RoleWithValues {
-    ADMIN("admin"), USER("user");
+enum RoleWithValues {
+  ADMIN("admin"), USER("user");
 
-    private final String s;
+  private final String s;
 
-    RoleWithValues(String s) {
-      this.s = s;
-    }
+  RoleWithValues(String s) {
+    this.s = s;
+  }
 
-    @Override
-    public String toString() {
-      return s;
-    }
+  @Override
+  public String toString() {
+    return s;
   }
 }
 
