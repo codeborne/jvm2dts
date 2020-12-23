@@ -9,11 +9,7 @@ import java.lang.reflect.Type;
 
 public class ClassConverter implements ToTypeScriptConverter {
   public String convert(Class<?> clazz) {
-    if (clazz.getSimpleName().isEmpty()) return "";
-
-    StringBuilder output = new StringBuilder();
-
-    output.append("interface ").append(clazz.getSimpleName()).append(" {");
+    StringBuilder output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
 
     try {
       Field[] fields = clazz.getDeclaredFields();
