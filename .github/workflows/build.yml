@@ -10,12 +10,9 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-java@v1
         with:
-          java-version: '11'
-          architecture: x64
+          java-version: 11
       - name: Build
-        run: ./gradlew --info assemble
-      - name: Test
-        run: ./gradlew --info test
+        run: ./gradlew --info build
 
 #     TODO: publish jar to Maven-compatible package repository
 #      - uses: actions/upload-artifact@v1
