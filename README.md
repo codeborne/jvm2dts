@@ -13,6 +13,7 @@ client-side type checking of API calls and responses.
 
 * GitHub actions already build `jvm2dts` (see .github/workflow/build.yml)
   * Research how to publish the built jar into GitHub Maven repository, so it can be used as a dependency in other projects
+  * You may start here: https://docs.github.com/en/free-pro-team@latest/actions/guides/publishing-java-packages-with-gradle
 * Add nicer documentation and usage examples to this README file
 
 * Generate types in Anonima in well-defined location, e.g. `ui/api/types.d.ts`
