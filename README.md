@@ -5,7 +5,8 @@ client-side type checking of API calls and responses.
 
 ## TODO for Mikk
 
-* Kotlin nullability support (add ? to TypeScript fields if @Nullable annotation is present in Java)
+* Kotlin nullability support (add ? to TypeScript fields if @Nullable annotation is present on Java fields)
+  * Kotlin uses `org.jetbrains.annotations.Nullable`, but it's better to support any annotation with name `Nullable`
 * Specify multiple packages on the command-line (current workraround: run program multiple times)
 * Support for traversing sub-packages recursively?  
 * Optionally specify class-name regexp exclude filter, to exclude e.g. `(Service|Repository|Controller)$`
