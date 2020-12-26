@@ -1,9 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="ALTERNATIVE_JRE_PATH" value="15" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="jvm2dts.Main" />
     <module name="jvm2dts.main" />
-    <option name="PROGRAM_PARAMETERS" value="jvm2dts" />
-    <option name="VM_PARAMETERS" value="-cp jvm2dts:jvm2dts" />
+    <option name="PROGRAM_PARAMETERS" value="auth" />
+    <option name="VM_PARAMETERS" value="-cp out/production/classes:../anonima/anonima/build/classes/kotlin/main:$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.21/4a668382d7c38688d3490afde93b6a113ed46698/kotlin-stdlib-1.4.21.jar" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
