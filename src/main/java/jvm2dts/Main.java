@@ -3,14 +3,12 @@ package jvm2dts;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Comparator;
 
 import static java.lang.System.*;
-import static java.util.Comparator.comparing;
 
 public class Main {
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     if (args.length < 1) {
       err.println("Usage: java -classpath program:path/to/package " + Main.class.getName() + " <package>");
       exit(1);
