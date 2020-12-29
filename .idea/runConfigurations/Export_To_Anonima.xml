@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Export To Anonima" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="15" />
+    <option name="MAIN_CLASS_NAME" value="jvm2dts.Main" />
+    <module name="jvm2dts.main" />
+    <option name="PROGRAM_PARAMETERS" value="-exclude (.*)(Service|Repository|Controller)$ auth &gt; ../anonima/anonima/ui/api/types.dts`" />
+    <option name="VM_PARAMETERS" value="-cp out/production/classes:../anonima/anonima/build/classes/kotlin/main:$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.21/4a668382d7c38688d3490afde93b6a113ed46698/kotlin-stdlib-1.4.21.jar" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

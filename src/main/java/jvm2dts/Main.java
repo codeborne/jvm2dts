@@ -10,7 +10,7 @@ public class Main {
 
   public static void main(String[] args) {
     if (args.length < 1) {
-      err.println("Usage: java -classpath program:path/to/package " + Main.class.getName() + "[-exclude regexp] <package>");
+      err.println("Usage: java -classpath path/to/package " + Main.class.getName() + "[-exclude regexp] <package>");
       exit(1);
     }
 
