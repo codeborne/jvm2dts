@@ -18,11 +18,13 @@ class EnumConverterTest {
     assertThat(converter.convert(RoleWithValues.class)).isEqualTo("enum RoleWithValues {ADMIN = 'admin', USER = 'user'}");
   }
 
+  @SuppressWarnings("unused")
   enum Role {
     ADMIN, USER
   }
 }
 
+@SuppressWarnings("unused")
 enum RoleWithValues {
   ADMIN("admin"), USER("user");
 

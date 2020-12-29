@@ -1,5 +1,6 @@
 package jvm2dts;
 
+import org.jetbrains.annotations.Nullable;
 import jvm2dts.types.ClassConverter;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +36,7 @@ class ClassConverterTest {
       "aDouble: number;}");
   }
 
+  @SuppressWarnings("unused")
   static class NumbersPrimitive {
     byte aByte;
     short aShort;
@@ -44,16 +46,18 @@ class ClassConverterTest {
     double aDouble;
   }
 
+  @SuppressWarnings("unused")
   static class NumbersObjects {
     Byte aByte;
     Short aShort;
     Integer anInteger;
     Long aLong;
-    Float aFloat;
-    Double aDouble;
+    @Nullable Float aFloat;
+    @Nullable Double aDouble;
   }
 }
 
+@SuppressWarnings("unused")
 class Model {
   String name;
   int age;

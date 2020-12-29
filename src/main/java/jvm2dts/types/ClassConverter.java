@@ -1,8 +1,8 @@
 package jvm2dts.types;
 
 import jvm2dts.ToTypeScriptConverter;
-import jvm2dts.TypeNameToTSMap;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -17,13 +17,20 @@ public class ClassConverter implements ToTypeScriptConverter {
       Field[] fields = clazz.getDeclaredFields();
       for (int i = 0; i < fields.length; i++) {
         Field field = fields[i];
-
+        Annotation[] annotations = field.getDeclaredAnnotations();
         try {
           ParameterizedType genericType = (ParameterizedType) field.getGenericType();
           Type[] parameterTypes = genericType.getActualTypeArguments();
-          output
-            .append(field.getName())
-            .append(": ");
+          output.append(field.getName());
+
+          for (Annotation annotation : annotations) {
+            if (annotation.annotationType().getName().matches("Nullable")) {
+              output.append("?");
+              break;
+            }
+          }
+
+          output.append(": ");
           if (parameterTypes.length <= 1) {
             output
               .append(getTSType((Class<?>) parameterTypes[0]))
@@ -42,10 +49,16 @@ public class ClassConverter implements ToTypeScriptConverter {
             output.append("}");
           }
         } catch (ClassCastException e) {
-          output
-            .append(field.getName())
-            .append(": ")
-            .append(getTSType(field.getType()));
+          output.append(field.getName());
+
+          for (Annotation annotation : annotations) {
+            if (annotation.annotationType().getName().matches("Nullable")) {
+              output.append("?");
+              break;
+            }
+          }
+          output.append(": ");
+          output.append(getTSType(field.getType()));
         }
 
         if (i + 1 < fields.length)

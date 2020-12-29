@@ -3,13 +3,13 @@
 Generates TypeScript definitions (d.ts) for Java/Kotlin model classes that can be used for 
 client-side type checking of API calls and responses.
 
-## TODO for Mikk
+## TODO
 
 * Kotlin nullability support (add ? to TypeScript fields if @Nullable annotation is present on Java fields)
   * Kotlin uses `org.jetbrains.annotations.Nullable`, but it's better to support any annotation with name `Nullable`
-* Specify multiple packages on the command-line (current workraround: run program multiple times)
+* Specify multiple packages on the command-line (current workaround: run program multiple times)
 * Support for traversing sub-packages recursively?  
-* Optionally specify class-name regexp exclude filter, to exclude e.g. `(Service|Repository|Controller)$`
+* Optionally specify class-name regexp exclude filters, to exclude e.g. `(Service|Repository|Controller)$`
 
 * GitHub actions already build `jvm2dts` (see .github/workflow/build.yml)
   * Research how to publish the built jar into GitHub Maven repository, so it can be used as a dependency in other projects
