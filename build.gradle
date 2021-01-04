@@ -11,6 +11,15 @@ repositories {
 }
 
 publishing {
+  publications {
+    register("jar", MavenPublication) {
+      from components.java
+      pom {
+        url.set("https://github.com/codeborne/jvm2dts.git")
+      }
+    }
+  }
+
   repositories {
     maven {
       name = "GitHubPackages"
