@@ -1,19 +1,18 @@
-name: Publish package to the Maven Central Repository and GitHub Packages
+name: Publish package to GitHub packages
 on:
   release:
     types: [created]
 jobs:
   publish:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
-      - name: Publish to the Maven Central Repository
+          java-version: 11
+      - name: Publish to GitHub packages
         run: gradle publish
         env:
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

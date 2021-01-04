@@ -1,7 +1,9 @@
 package jvm2dts;
 
-import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static java.lang.System.*;
@@ -34,30 +36,34 @@ public class Main {
 
       if (packageUrl.getProtocol().equals("file")) {
         final String finalExclude = exclude;
-        Arrays.stream(new File(packageUrl.getPath()).listFiles())
-          .filter(f -> {
-              if (f.getName().endsWith(".class")) {
-                return finalExclude == null ||
-                  !f.getName()
-                    .substring(0, f.getName().lastIndexOf('.'))
-                    .matches(finalExclude);
+        try {
+          Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile)
+            .filter(path -> {
+                if (path.toString().endsWith(".class")) {
+                  return finalExclude == null ||
+                    !path.toString()
+                      .substring(0, path.toString().lastIndexOf('.'))
+                      .matches(finalExclude);
+                }
+                return false;
               }
-              return false;
+            )
+            .map(path -> packageName + "." + path.toString().substring(0, path.toString().lastIndexOf('.')))
+            .sorted().forEach(className -> {
+            try {
+              String converted = converter.convert(Class.forName(className));
+              if (!converted.isEmpty()) {
+                out.print("// ");
+                out.println(className);
+                out.println(converted);
+              }
+            } catch (Throwable e) {
+              err.println("Failed to load: " + e);
             }
-          )
-          .map(f -> packageName + "." + f.getName().substring(0, f.getName().lastIndexOf('.')))
-          .sorted().forEach(className -> {
-          try {
-            String converted = converter.convert(Class.forName(className));
-            if (!converted.isEmpty()) {
-              out.print("// ");
-              out.println(className);
-              out.println(converted);
-            }
-          } catch (Throwable e) {
-            err.println("Failed to load: " + e);
-          }
-        });
+          });
+        } catch (IOException e) {
+          err.println("Could not access package " + packageName + ": " + e);
+        }
       } else {
         err.println("Cannot load " + packageUrl + ": unsupported protocol");
         exit(3);

@@ -28,7 +28,7 @@ java -classpath path1:path2/to:path3/to/package
 * Kotlin nullability support (add ? to TypeScript fields if @Nullable annotation is present on Java fields)
   * Kotlin uses `org.jetbrains.annotations.Nullable`, but it's better to support any annotation with name `Nullable`
   * While a declared annotation check exists, getting a Nullable annotation in Reflection doesn't appear to work, 
-  both getDeclaredAnnotations and getAnnotations return null? 
+  both getDeclaredAnnotations and getAnnotations return null? (probably RetentionPolicy) 
 
 * Support for traversing sub-packages recursively?
 
@@ -37,7 +37,7 @@ java -classpath path1:path2/to:path3/to/package
   * You may start here: https://docs.github.com/en/free-pro-team@latest/actions/guides/publishing-java-packages-with-gradle
 
 * Generate types in Anonima in well-defined location, e.g. `ui/api/types.d.ts`
-  * e.g. `java -cp jvm2dts.jar:../anonima/build/classes/kotlin/main:~/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.21/*/kotlin-stdlib-1.4.21.jar jvm2dts.Main auth > ../anonima/ui/api/types.dts`
+  * e.g. `java -cp jvm2dts.jar:../anonima/build/classes/kotlin/main:~/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.21/*/kotlin-stdlib-1.4.21.jar jvm2dts.Main auth > ../anonima/ui/api/types.d.ts`
   * Commit them and use in some .ts files
   * Add to Anonima build (build.gradle.kts) to regenerate types on every build (to check that client-side still compiles with modified server-side)
     * gradle gives access to project's classpath very easily, which can be used to run jvm2dts
