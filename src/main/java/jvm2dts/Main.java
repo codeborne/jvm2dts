@@ -39,16 +39,17 @@ public class Main {
         try {
           Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile)
             .filter(path -> {
-                if (path.toString().endsWith(".class")) {
+              String pathString = path.getFileName().toString();
+                if (pathString.endsWith(".class")) {
                   return finalExclude == null ||
-                    !path.toString()
-                      .substring(0, path.toString().lastIndexOf('.'))
+                    !pathString
+                      .substring(0, pathString.lastIndexOf('.'))
                       .matches(finalExclude);
                 }
                 return false;
               }
             )
-            .map(path -> packageName + "." + path.toString().substring(0, path.toString().lastIndexOf('.')))
+            .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
             .sorted().forEach(className -> {
             try {
               String converted = converter.convert(Class.forName(className));
@@ -58,14 +59,14 @@ public class Main {
                 out.println(converted);
               }
             } catch (Throwable e) {
-              err.println("Failed to load: " + e);
+              err.println("// Failed to load: " + e);
             }
           });
         } catch (IOException e) {
-          err.println("Could not access package " + packageName + ": " + e);
+          err.println("// Could not access package " + packageName + ": " + e);
         }
       } else {
-        err.println("Cannot load " + packageUrl + ": unsupported protocol");
+        err.println("// Cannot load " + packageUrl + ": unsupported protocol");
         exit(3);
       }
     }
