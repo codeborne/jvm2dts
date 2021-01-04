@@ -1,5 +1,6 @@
 plugins {
   id 'java'
+  id 'maven-publish'
 }
 
 group 'com.codeborne'
@@ -7,6 +8,19 @@ version '0.1-SNAPSHOT'
 
 repositories {
   mavenCentral()
+}
+
+publishing {
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = "https://maven.pkg.github.com/codeborne/jvm2dts"
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+        password = System.getenv("GITHUB_TOKEN")
+      }
+    }
+  }
 }
 
 dependencies {
