@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.codeborne'
-version '0.1-SNAPSHOT'
+version '1.0.0'
 
 repositories {
   mavenCentral()
@@ -14,6 +14,9 @@ publishing {
   publications {
     register("jar", MavenPublication) {
       from components.java
+      pom {
+        url.set("https://github.com/codeborne/jvm2dts.git")
+      }
     }
   }
 
