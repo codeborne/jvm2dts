@@ -1,53 +1,84 @@
 plugins {
-  id 'java'
-  id 'maven-publish'
+    id 'java'
+    id 'maven-publish'
 }
 
 group 'com.codeborne'
 version '1.0.1'
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 publishing {
-  publications {
-    register("jar", MavenPublication) {
-      from components.java
-      pom {
-        url.set("https://github.com/codeborne/jvm2dts.git")
-      }
+    publications {
+        register("GithubPackages", MavenPublication) {
+            pom {
+                url: "https://github.com/codeborne/jvm2dts.git"
+            }
+        }
+        register("MavenCentral", MavenPublication) {
+            pom {
+                name: 'jvm2dts'
+                description: 'A concise description of my library'
+                url: 'https://github.com/codeborne/jvm2dts'
+//                TODO: set up license and developers
+//                licenses {
+//                    license {
+//                        name: 'The Apache License, Version 2.0'
+//                        url: 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                    }
+//                }
+//                developers {
+//                    developer {
+//                        id: 'johnd'
+//                        name: 'John Doe'
+//                        email: 'john.doe@example.com'
+//                    }
+//                }
+                scm {
+                    url: 'https://github.com/codeborne/jvm2dts'
+                }
+            }
+        }
     }
-  }
 
-  repositories {
-    maven {
-      name = "GitHubPackages"
-      url = "https://maven.pkg.github.com/codeborne/jvm2dts"
-      credentials {
-        username = System.getenv("GITHUB_ACTOR")
-        password = System.getenv("GITHUB_TOKEN")
-      }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/codeborne/jvm2dts"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+        maven {
+            name = "MavenCentral"
+            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
     }
-  }
 }
 
 dependencies {
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-  testImplementation 'org.assertj:assertj-core:3.15.0'
-  testImplementation 'org.jetbrains:annotations:20.1.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.assertj:assertj-core:3.15.0'
+    testImplementation 'org.jetbrains:annotations:20.1.0'
 }
 
 test {
-  useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 jar {
-  manifest {
-    attributes(
-      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-      'Main-Class': 'jvm2dts.Main'
-    )
-  }
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'jvm2dts.Main'
+        )
+    }
 }
