@@ -14,9 +14,6 @@ publishing {
   publications {
     register("jar", MavenPublication) {
       from components.java
-      pom {
-        url.set("https://github.com/codeborne/jvm2dts.git")
-      }
     }
   }
 
@@ -35,7 +32,7 @@ publishing {
 dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-  testImplementation "org.assertj:assertj-core:3.15.0"
+  testImplementation 'org.assertj:assertj-core:3.15.0'
   testImplementation 'org.jetbrains:annotations:20.1.0'
 }
 

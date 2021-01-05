@@ -56,6 +56,7 @@ public class Main {
               if (!converted.isEmpty()) {
                 out.print("// ");
                 out.println(className);
+                out.print("export ");
                 out.println(converted);
               }
             } catch (Throwable e) {
