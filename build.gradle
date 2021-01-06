@@ -21,7 +21,7 @@ publishing {
             pom {
                 name: 'jvm2dts'
                 description: 'A concise description of my library'
-                url: 'https://github.com/codeborne/jvm2dts'
+                url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
 //                TODO: set up license and developers
 //                licenses {
 //                    license {
