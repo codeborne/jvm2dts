@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.codeborne'
-version '1.0.1'
+version '1.0.2'
 
 repositories {
     mavenCentral()
@@ -14,30 +14,30 @@ publishing {
     publications {
         register("GithubPackages", MavenPublication) {
             pom {
-                url: "https://github.com/codeborne/jvm2dts.git"
+                url = "https://github.com/codeborne/jvm2dts.git"
             }
         }
         register("MavenCentral", MavenPublication) {
             pom {
-                name: 'jvm2dts'
-                description: 'A concise description of my library'
-                url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+                name = 'jvm2dts'
+                description = 'Generate Java/Kotlin 11+ classes into TypeScript interfaces and enums'
+                url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
 //                TODO: set up license and developers
 //                licenses {
 //                    license {
-//                        name: 'The Apache License, Version 2.0'
-//                        url: 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                        name = 'The Apache License, Version 2.0'
+//                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
 //                    }
 //                }
 //                developers {
 //                    developer {
-//                        id: 'johnd'
-//                        name: 'John Doe'
-//                        email: 'john.doe@example.com'
+//                        id = 'johnd'
+//                        name = 'John Doe'
+//                        email = 'john.doe@example.com'
 //                    }
 //                }
                 scm {
-                    url: 'https://github.com/codeborne/jvm2dts'
+                    url = 'https://github.com/codeborne/jvm2dts'
                 }
             }
         }
