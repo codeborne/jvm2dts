@@ -1,14 +1,31 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'signing'
 }
 
 group 'com.codeborne'
-version '1.0.2'
+version '1.1.1'
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
 
 repositories {
     mavenCentral()
 }
+
+signing {
+    sign configurations.archives
+    sign publishing.publications
+}
+
 
 publishing {
     publications {
@@ -17,27 +34,33 @@ publishing {
                 url = "https://github.com/codeborne/jvm2dts.git"
             }
         }
-        register("MavenCentral", MavenPublication) {
+        register("SonaType", MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
             pom {
+                artifactId = 'jvm2dts'
                 name = 'jvm2dts'
                 description = 'Generate Java/Kotlin 11+ classes into TypeScript interfaces and enums'
-                url = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-//                TODO: set up license and developers
-//                licenses {
-//                    license {
-//                        name = 'The Apache License, Version 2.0'
-//                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-//                    }
-//                }
-//                developers {
-//                    developer {
-//                        id = 'johnd'
-//                        name = 'John Doe'
-//                        email = 'john.doe@example.com'
-//                    }
-//                }
+                url = 'https://github.com/codeborne/jvm2dts'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'mmsoomre'
+                        name = 'M. M. Soomre'
+                        email = 'mmsoomre@pm.me'
+                    }
+                }
                 scm {
-                    url = 'https://github.com/codeborne/jvm2dts'
+                    connection = "scm:git:git://github.com/codeborne/jvm2dts.git"
+                    developerConnection = 'scm:git:ssh://github.com:codeborne/jvm2dts.git'
+                    url = 'https://github.com/codeborne/jvm2dts/tree/master'
                 }
             }
         }
@@ -45,29 +68,33 @@ publishing {
 
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/codeborne/jvm2dts"
+            name "GitHubPackages"
+            url "https://maven.pkg.github.com/codeborne/jvm2dts"
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                username System.getenv("GITHUB_ACTOR")
+                password System.getenv("GITHUB_TOKEN")
             }
         }
         maven {
-            name = "MavenCentral"
-            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            name "MavenCentral"
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
-                username = System.getenv("MAVEN_USERNAME")
-                password = System.getenv("MAVEN_PASSWORD")
+                username System.getenv("MAVEN_USERNAME")
+                password System.getenv("MAVEN_PASSWORD")
             }
         }
     }
 }
+
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.assertj:assertj-core:3.15.0'
     testImplementation 'org.jetbrains:annotations:20.1.0'
+    testRuntimeOnly 'org.ow2.asm:asm:9.0'
+
+    compileClasspath 'org.ow2.asm:asm:9.0'
 }
 
 test {
@@ -80,5 +107,8 @@ jar {
                 'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
                 'Main-Class': 'jvm2dts.Main'
         )
+        from {
+            configurations.compileClasspath.filter{ it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
+        }
     }
 }

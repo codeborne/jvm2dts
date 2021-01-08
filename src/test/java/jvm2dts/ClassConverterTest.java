@@ -32,8 +32,8 @@ class ClassConverterTest {
       "aShort: number; " +
       "anInteger: number; " +
       "aLong: number; " +
-      "aFloat: number; " +
-      "aDouble: number;}");
+      "aFloat?: number; " +
+      "aDouble?: number;}");
   }
 
   @SuppressWarnings("unused")
