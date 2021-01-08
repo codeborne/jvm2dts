@@ -94,7 +94,7 @@ dependencies {
     testImplementation 'org.jetbrains:annotations:20.1.0'
     testRuntimeOnly 'org.ow2.asm:asm:9.0'
 
-    compileClasspath 'org.ow2.asm:asm:9.0'
+    implementation 'org.ow2.asm:asm:9.0'
 }
 
 test {
@@ -102,13 +102,19 @@ test {
 }
 
 jar {
+
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+    
     manifest {
+        archiveBaseName = 'jvm2dts'
         attributes(
                 'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
                 'Main-Class': 'jvm2dts.Main'
         )
-        from {
-            configurations.compileClasspath.filter{ it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
-        }
     }
+
 }
