@@ -14,12 +14,6 @@ Usage: java -classpath PATH/TO/PACKAGE... jvm2dts.Main [OPTION] CLASS...
     -exclude REGEXP     Exclude classes matching the Java RegExp pattern    
 ```
 
-On **Windows**, separate multiple class paths by **semicolons** (`;`)
-- `java -classpath path1;path2\to;path3\to\package`
-
-On **Unix**, class path separation works by **colons** (`:`)
-- `java -classpath path1:path2/to:path3/to/package`
-
 [Read more about setting class paths in Java](https://docs.oracle.com/javase/11/docs/technotes/tools/windows/classpath.html)
 
 The TypeScript interfaces output from stdout and all errors are through stderr (and prefixed by a comment)
