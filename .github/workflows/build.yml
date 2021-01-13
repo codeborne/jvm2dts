@@ -13,10 +13,3 @@ jobs:
           java-version: 11
       - name: Build
         run: ./gradlew --info build
-
-#     TODO: publish jar to Maven-compatible package repository
-#      - uses: actions/upload-artifact@v1
-#        with:
-#          name: All binaries
-#          path: build/libs
-#
