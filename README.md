@@ -1,11 +1,11 @@
 # jvm2dts
 
-Generates TypeScript definitions (d.ts) for Java/Kotlin model classes from Reflection 
+Generates TypeScript definitions (d.ts) for Java/Kotlin model classes using reflection/asm 
 that can be used for client-side type checking of API calls and responses.
 
 ## Usage
 
-Java SDK version must be at least 11
+Java version must be at least 11
 
 ### CLI
 ```
@@ -18,7 +18,7 @@ Usage: java -classpath PATH/TO/PACKAGE... jvm2dts.Main [OPTION] CLASS...
 
 The TypeScript interfaces output from stdout and all errors are through stderr (and prefixed by a comment)
 
-### Using in Gradle Kotlin DSL
+### Using in Gradle (Kotlin DSL)
 
 ```kotlin
 // Required dependencies
@@ -52,7 +52,7 @@ tasks.register("createTSTypes") {
 Due to how definition files in TypeScript work, enums inside ``*.d.ts``
 will always be undefined - if you have enums, it is suggested to write into a ``*.ts`` file instead
 
-### Nullable
+### Nullability
 
-jvm2dts can read Nullable annotated fields and will append ``?`` to the name of a variable.
-This is done using ASM, so it may break with updates.
+jvm2dts can read *Nullable* annotations and will append ``?`` to the name of a variable.
+This is done using ASM, so it may need to be updated once new verions of Java are released.
