@@ -23,27 +23,23 @@ The TypeScript interfaces output from stdout and all errors are through stderr (
 ```kotlin
 // Required dependencies
 dependencies {
-  compileOnly("com.codeborne:jvm2dts:1.1.2")
+  compileOnly("com.codeborne:jvm2dts:1.1.3")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums
 // This buffers the standard output of the task into a stream, then gets written to a file
-tasks.register("createTSTypes") {
-  val outputText: String = ByteArrayOutputStream().use { outputStream ->
-    project.exec {
-      standardOutput = outputStream
-      val command = "java -cp " +
-        sourceSets.main.get().runtimeClasspath.asPath + File.pathSeparator + 
-        sourceSets.main.get().compileClasspath.asPath + " "
-        "jvm2dts.Main " +
-        "-exclude (.*)SuffixOfClassNameIDontWant" + // or PrefixOfClassNameIDontWant(.*)
-        "mypackage1 mypackage2 ..."
-      commandLine = command.split(" ")
-    }
-    outputStream.toString()
+tasks.register("generateTSTypes") {
+  doLast {
+    File("ui/api/types.ts").writeText(ByteArrayOutputStream().use { out ->
+      project.exec {
+        standardOutput = out
+        commandLine = """java -classpath ${sourceSets.main.get().runtimeClasspath.asPath}${File.pathSeparator}${sourceSets.main.get().compileClasspath.asPath}
+          jvm2dts.Main -exclude (.*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*)"
+          mypackage1 mypackage2 ...""".split("\\s+".toRegex())
+      }
+      out.toString()
+    })
   }
-
-  File("target/path/myTypes.d.ts").writeText(outputText)
 }
 ```
 

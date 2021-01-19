@@ -39,12 +39,13 @@ public class Main {
         try {
           Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile)
             .filter(path -> {
-              String pathString = path.getFileName().toString();
+                String pathString = path.getFileName().toString();
                 if (pathString.endsWith(".class")) {
-                  return finalExclude == null ||
-                    !pathString
-                      .substring(0, pathString.lastIndexOf('.'))
-                      .matches(finalExclude);
+                  if (finalExclude == null) return true;
+
+                  String classString = pathString.substring(0, pathString.lastIndexOf('.'));
+                  if (classString.matches(finalExclude)) return false;
+                  return !classString.matches(".*\\$\\d+$");
                 }
                 return false;
               }
