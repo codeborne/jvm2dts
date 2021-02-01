@@ -1,9 +1,12 @@
 package jvm2dts;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
+import java.time.*;
+import java.time.chrono.ChronoLocalDate;
+import java.time.chrono.ChronoLocalDateTime;
+import java.time.chrono.ChronoPeriod;
+import java.time.chrono.Chronology;
+import java.time.zone.ZoneOffsetTransition;
+import java.time.zone.ZoneOffsetTransitionRule;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,14 +23,40 @@ public class TypeNameToTSMap {
     typeNameToTS.put(long.class, "number");
     typeNameToTS.put(float.class, "number");
     typeNameToTS.put(double.class, "number");
+
     typeNameToTS.put(Number.class, "number");
     typeNameToTS.put(String.class, "string");
+
     typeNameToTS.put(UUID.class, "string");
+
     typeNameToTS.put(Date.class, "Date|string");
-    typeNameToTS.put(Instant.class, "Date|string");
     typeNameToTS.put(LocalDate.class, "Date|string");
+    typeNameToTS.put(LocalTime.class, "Date|string");
     typeNameToTS.put(LocalDateTime.class, "Date|string");
+
+    typeNameToTS.put(Month.class, "Date|string");
+    typeNameToTS.put(MonthDay.class, "Date|string");
+    typeNameToTS.put(Year.class, "Date|string");
+    typeNameToTS.put(YearMonth.class, "Date|string");
+    typeNameToTS.put(DayOfWeek.class, "string");
+
+    typeNameToTS.put(Instant.class, "Date|string");
+    typeNameToTS.put(Clock.class, "string");
     typeNameToTS.put(Period.class, "string");
+    typeNameToTS.put(Duration.class, "string");
+
+    typeNameToTS.put(ChronoLocalDate.class, "Date|string");
+    typeNameToTS.put(ChronoLocalDateTime.class, "Date|string");
+    typeNameToTS.put(ChronoPeriod.class, "string");
+
+    typeNameToTS.put(OffsetDateTime.class, "Date|string");
+    typeNameToTS.put(OffsetTime.class, "Date|string");
+
+    typeNameToTS.put(ZonedDateTime.class, "Date|string");
+    typeNameToTS.put(ZoneId.class, "string");
+    typeNameToTS.put(ZoneOffset.class, "string");
+    typeNameToTS.put(ZoneOffsetTransition.class, "string");
+    typeNameToTS.put(ZoneOffsetTransitionRule.class, "string");
   }
 
   public static String getTSType(Class<?> javaType) {
