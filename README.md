@@ -23,7 +23,7 @@ The TypeScript interfaces output from stdout and all errors are through stderr (
 ```kotlin
 // Required dependencies
 dependencies {
-  compileOnly("com.codeborne:jvm2dts:1.1.3")
+  compileOnly("com.codeborne:jvm2dts:1.1.4")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums
@@ -51,4 +51,4 @@ will always be undefined - if you have enums, it is suggested to write into a ``
 ### Nullability
 
 jvm2dts can read *Nullable* annotations and will append ``?`` to the name of a variable.
-This is done using ASM, so it may need to be updated once new verions of Java are released.
+This is done using ASM, so it may need to be updated once new versions of Java release.

@@ -2,6 +2,7 @@ package jvm2dts;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ public class TypeNameToTSMap {
     typeNameToTS.put(Date.class, "Date|string");
     typeNameToTS.put(Instant.class, "Date|string");
     typeNameToTS.put(LocalDate.class, "Date|string");
+    typeNameToTS.put(LocalDateTime.class, "Date|string");
     typeNameToTS.put(Period.class, "string");
   }
 
