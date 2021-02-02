@@ -18,7 +18,8 @@ public class ConverterTest {
       "roles: Role[]; " +
       "dates: Date[]; " +
       "ids: string[]; " +
-      "map: {[key: string]: number};}");
+      "map: {[key: string]: number}; " +
+      "mapInMap: {[key: string]: {[key: string]: number}};}");
   }
 
   enum Role {
@@ -30,6 +31,7 @@ public class ConverterTest {
     Date[] dates;
     List<UUID> ids;
     Map<String, Integer> map;
+    Map<String, Map<String, Integer>> mapInMap;
   }
 
 }

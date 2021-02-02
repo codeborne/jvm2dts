@@ -68,7 +68,6 @@ public class ClassConverter implements ToTypeScriptConverter {
         for (int i = 0; i < fields.length; i++) {
           Field field = fields[i];
           try {
-
             ParameterizedType genericType = (ParameterizedType) field.getGenericType();
             Type[] parameterTypes = genericType.getActualTypeArguments();
 
@@ -86,18 +85,9 @@ public class ClassConverter implements ToTypeScriptConverter {
                 .append(getTSType((Class<?>) parameterTypes[0]))
                 .append("[]");
             } else {
-              output.append("{");
-              for (int j = 0; j < parameterTypes.length; j = +2) {
-                Type key = parameterTypes[j];
-                Type value = parameterTypes[j + 1];
-                output
-                  .append("[key: ")
-                  .append(getTSType((Class<?>) key))
-                  .append("]: ")
-                  .append(getTSType((Class<?>) value));
-              }
-              output.append("}");
+              output.append(readWithGenerics(parameterTypes));
             }
+
           } catch (ClassCastException e) {
 
             output.append(field.getName());
@@ -130,5 +120,29 @@ public class ClassConverter implements ToTypeScriptConverter {
     }
 
     return "";
+  }
+
+  public String readWithGenerics(Type[] parameterTypes) {
+    StringBuilder output = new StringBuilder();
+
+    output.append("{");
+    for (int j = 0; j < parameterTypes.length; j = +2) {
+      Type key = parameterTypes[j];
+      Type value = parameterTypes[j + 1];
+      output.append("[key: ");
+      output.append(getTSType((Class<?>) key));
+      output.append("]: ");
+      if (value instanceof ParameterizedType) {
+        output.append(
+          readWithGenerics(
+            ((ParameterizedType) value).getActualTypeArguments()
+          )
+        );
+      } else
+        output.append(getTSType((Class<?>) value));
+    }
+    output.append("}");
+
+    return output.toString();
   }
 }
