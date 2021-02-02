@@ -9,9 +9,14 @@ Java version must be at least 11
 
 ### CLI
 ```
-Usage: java -classpath PATH/TO/PACKAGE... jvm2dts.Main [OPTION] CLASS...
-
-    -exclude REGEXP     Exclude classes matching the Java RegExp pattern    
+Example: java -classpath path/to/package jvm2dts.Main -exclude regexp -cast MyClass=number,AnotherClass=string package
+Usage: <main class> [options]
+  Options:
+    -c, -cast
+      Comma-separated key=value map to make classnames (only inside interface) matching key into value
+    -e, -exclude
+      Excludes classes in the generation matching a Java RegExp pattern
+    -h, -help
 ```
 
 [Read more about setting class paths in Java](https://docs.oracle.com/javase/11/docs/technotes/tools/windows/classpath.html)
@@ -23,7 +28,7 @@ The TypeScript interfaces output from stdout and all errors are through stderr (
 ```kotlin
 // Required dependencies
 dependencies {
-  compileOnly("com.codeborne:jvm2dts:1.1.6")
+  compileOnly("com.codeborne:jvm2dts:1.2.0")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums
@@ -34,7 +39,9 @@ tasks.register("generateTSTypes") {
       project.exec {
         standardOutput = out
         commandLine = """java -classpath ${sourceSets.main.get().runtimeClasspath.asPath}${File.pathSeparator}${sourceSets.main.get().compileClasspath.asPath}
-          jvm2dts.Main -exclude (.*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*)"
+          jvm2dts.Main 
+          -exclude .*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*
+          -cast MyNumericClass=number
           mypackage1 mypackage2 ...""".split("\\s+".toRegex())
       }
       out.toString()
@@ -45,7 +52,7 @@ tasks.register("generateTSTypes") {
 
 ### Enums
 
-Due to how definition files in TypeScript work, enums inside ``*.d.ts``
+Because TypeScript reads definition files only at compile-time, enums inside ``*.d.ts``
 will always be undefined - if you have enums, it is suggested to write into a ``*.ts`` file instead
 
 ### Nullability

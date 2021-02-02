@@ -19,7 +19,8 @@ public class ConverterTest {
       "dates: Date[]; " +
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
-      "mapInMap: {[key: string]: {[key: string]: number}};}");
+      "mapInMap: {[key: string]: {[key: string]: number}}; " +
+      "generic: Generic<T,U,V>;}");
   }
 
   enum Role {
@@ -32,6 +33,8 @@ public class ConverterTest {
     List<UUID> ids;
     Map<String, Integer> map;
     Map<String, Map<String, Integer>> mapInMap;
+    Generic<?, ?, ?> generic;
   }
 
+  static class Generic<T, U, V> {}
 }

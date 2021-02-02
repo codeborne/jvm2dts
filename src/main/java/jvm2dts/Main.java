@@ -1,50 +1,77 @@
 package jvm2dts;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.*;
 
 import static java.lang.System.*;
 
 public class Main {
 
+  static class Args {
+    @Parameter
+    private List<String> packages = new ArrayList<>();
+
+    @Parameter(names = {"-e", "-exclude"}, description = "Excludes classes in the generation matching a Java RegExp pattern")
+    private String excludeRegex;
+
+    @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching key into value")
+    private String cast;
+
+    @Parameter(names = {"-h", "-help"}, help = true)
+    private boolean help;
+
+  }
+
   public static void main(String[] args) {
-    if (args.length < 1) {
-      err.println("Usage: java -classpath path/to/package " + Main.class.getName() + "[-exclude regexp] <package>");
-      exit(1);
+    Args parsedArgs = new Args();
+    JCommander jc = JCommander.newBuilder()
+      .addObject(parsedArgs)
+      .build();
+    jc.parse(args);
+    if (args.length < 1 || parsedArgs.help) {
+      err.println("Example: java -classpath path/to/package " + Main.class.getName() + " -exclude regexp -cast MyClass=number,AnotherClass=string package");
+      jc.usage();
+      exit(0);
     }
 
-    String exclude = null;
-    if (args[0].equals("-exclude") && args.length > 1) {
-      exclude = args[1];
-    }
 
-    for (int i = 0; i < args.length; i++) {
-      if (exclude != null && i < 2)
-        continue;
+    for (int i = 0; i < parsedArgs.packages.size(); i++) {
 
-      String packageName = args[i];
+      String packageName = parsedArgs.packages.get(i);
       Converter converter = new Converter();
 
       URL packageUrl = Main.class.getClassLoader().getResource(packageName.replace('.', '/'));
       if (packageUrl == null) {
-        err.println("Cannot load " + packageName + " using ClassLoader, missing from classpath?");
+        err.println("Cannot load " + packageName + " using ClassLoader, is it missing from classpath?");
         exit(2);
       }
 
       if (packageUrl.getProtocol().equals("file")) {
-        final String finalExclude = exclude;
         try {
+          final String exclude = parsedArgs.excludeRegex;
+          final Map<String, String> castMap = new HashMap<>();
+
+          if (parsedArgs.cast != null) {
+            String[] kvpairs = parsedArgs.cast.split(",");
+            for (String pair : kvpairs) {
+              castMap.put(pair.split("=")[0], pair.split("=")[1]);
+            }
+          }
+
           Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile)
             .filter(path -> {
                 String pathString = path.getFileName().toString();
                 if (pathString.endsWith(".class")) {
-                  if (finalExclude == null) return true;
+                  if (exclude == null) return true;
 
                   String classString = pathString.substring(0, pathString.lastIndexOf('.'));
-                  if (classString.matches(finalExclude)) return false;
+                  if (classString.matches(exclude)) return false;
                   return !classString.matches(".*\\$\\d+$");
                 }
                 return false;
@@ -53,7 +80,7 @@ public class Main {
             .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
             .sorted().forEach(className -> {
             try {
-              String converted = converter.convert(Class.forName(className));
+              String converted = converter.convert(Class.forName(className), castMap);
               if (!converted.isEmpty()) {
                 out.print("// ");
                 out.println(className);

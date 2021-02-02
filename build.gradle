@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.codeborne'
-version '1.1.6'
+version '1.2.0'
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
@@ -102,6 +102,7 @@ dependencies {
     testRuntimeOnly 'org.ow2.asm:asm:9.0'
 
     implementation 'org.ow2.asm:asm:9.0'
+    implementation 'com.beust:jcommander:1.78'
 }
 
 test {
