@@ -5,15 +5,14 @@ import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.*;
 import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 import java.util.*;
 
 import static jvm2dts.NameConverter.getName;
 import static jvm2dts.TypeNameToTSMap.getTSType;
 
+// TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
 
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
@@ -73,6 +72,12 @@ public class ClassConverter implements ToTypeScriptConverter {
 
         for (int i = 0; i < fields.length; i++) {
           Field field = fields[i];
+
+          if (Modifier.isStatic(field.getModifiers())) continue;
+
+          if (i > 0)
+            output.append(" ");
+
           try {
             ParameterizedType genericType = (ParameterizedType) field.getGenericType();
             Type[] parameterTypes = genericType.getActualTypeArguments();
@@ -84,24 +89,19 @@ public class ClassConverter implements ToTypeScriptConverter {
             }
 
             output.append(": ");
-            if (Map.class.isAssignableFrom(field.getType()))
-              output.append(readAsMapGeneric(parameterTypes, castMap));
-            else if (Iterable.class.isAssignableFrom(field.getType()) && parameterTypes.length == 1) {
-              String typeName = castMap.getOrDefault(
-                ((Class<?>) parameterTypes[0]).getName(),
-                getTSType((Class<?>) parameterTypes[0]));
 
-              output.append(typeName).append("[]");
+            if (castMap.containsKey(field.getType().getName())) {
+              output.append(castMap.get(field.getType().getName()));
+            } else if (Map.class.isAssignableFrom(field.getType()))
+              output.append(readAsMapGeneric(parameterTypes, castMap));
+            else if (Iterable.class.isAssignableFrom(field.getType())) {
+              output.append(getTSType((Class<?>) parameterTypes[0])).append("[]");
             } else {
-              output.append(castMap.getOrDefault(
-                field.getType().getName(),
-                getTSType(field.getType())));
+              output.append(getTSType(field.getType()));
               output.append("<");
               for (int j = 0; j < parameterTypes.length; j++) {
+                if (j > 0) output.append(",");
                 output.append(ALPHABET[j % ALPHABET.length]);
-                if (j < parameterTypes.length - 1) {
-                  output.append(",");
-                }
               }
               output.append(">");
             }
@@ -118,8 +118,6 @@ public class ClassConverter implements ToTypeScriptConverter {
           }
 
           output.append(";");
-          if (i + 1 < fields.length)
-            output.append(" ");
         }
       } catch (Exception e) {
         logger.warning(

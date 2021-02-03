@@ -34,6 +34,9 @@ public class ConverterTest {
     Map<String, Integer> map;
     Map<String, Map<String, Integer>> mapInMap;
     Generic<?, ?, ?> generic;
+
+    static boolean doNotGenerate = true;
+    static Date unwantedDate = new Date();
   }
 
   static class Generic<T, U, V> {}
