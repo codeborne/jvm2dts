@@ -86,15 +86,15 @@ public class ClassConverter implements ToTypeScriptConverter {
             output.append(": ");
             if (Map.class.isAssignableFrom(field.getType()))
               output.append(readAsMapGeneric(parameterTypes, castMap));
-            else if (!(parameterTypes[0] instanceof WildcardType)) {
+            else if (Iterable.class.isAssignableFrom(field.getType()) && parameterTypes.length == 1) {
               String typeName = castMap.getOrDefault(
-                getName((Class<?>) parameterTypes[0]),
+                ((Class<?>) parameterTypes[0]).getName(),
                 getTSType((Class<?>) parameterTypes[0]));
 
               output.append(typeName).append("[]");
             } else {
               output.append(castMap.getOrDefault(
-                getName(field.getType()),
+                field.getType().getName(),
                 getTSType(field.getType())));
               output.append("<");
               for (int j = 0; j < parameterTypes.length; j++) {
@@ -112,8 +112,8 @@ public class ClassConverter implements ToTypeScriptConverter {
             if (annotation != null && annotation.matches("(.*)Nullable;"))
               output.append("?");
 
-            output.append(": ").append(castMap.getOrDefault(
-              getName(field.getType()),
+            StringBuilder append = output.append(": ").append(castMap.getOrDefault(
+              field.getType().getName(),
               getTSType(field.getType())));
           }
 

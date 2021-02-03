@@ -25,6 +25,7 @@ public class TypeNameToTSMap {
     typeNameToTS.put(double.class, "number");
 
     typeNameToTS.put(Number.class, "number");
+    typeNameToTS.put(Boolean.class, "boolean");
     typeNameToTS.put(String.class, "string");
 
     typeNameToTS.put(UUID.class, "string");
