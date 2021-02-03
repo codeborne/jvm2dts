@@ -28,7 +28,7 @@ The TypeScript interfaces output from stdout and all errors are through stderr (
 ```kotlin
 // Required dependencies
 dependencies {
-  compileOnly("com.codeborne:jvm2dts:1.2.0")
+  compileOnly("com.codeborne:jvm2dts:1.2.1")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums
