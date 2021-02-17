@@ -1,6 +1,5 @@
 package jvm2dts;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 public interface ToTypeScriptConverter {

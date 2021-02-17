@@ -1,5 +1,6 @@
 package jvm2dts;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;
 import jvm2dts.types.ClassConverter;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,12 @@ class ClassConverterTest {
       "aDouble?: number;}");
   }
 
+  @Test
+  void jsonProperty() {
+    assertThat(converter.convert(JsonPropertyObject.class)).isEqualTo("interface JsonPropertyObject {" +
+      "namedProperty: boolean;}");
+  }
+
   @SuppressWarnings("unused")
   static class NumbersPrimitive {
     byte aByte;
@@ -54,6 +61,12 @@ class ClassConverterTest {
     Long aLong;
     @Nullable Float aFloat;
     @Nullable Double aDouble;
+  }
+
+  @SuppressWarnings("unused")
+  static class JsonPropertyObject {
+    @JsonProperty("namedProperty")
+    Boolean notWhatIWant;
   }
 }
 

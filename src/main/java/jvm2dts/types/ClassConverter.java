@@ -1,10 +1,12 @@
 package jvm2dts.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jvm2dts.ToTypeScriptConverter;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -27,14 +29,17 @@ public class ClassConverter implements ToTypeScriptConverter {
 
     StringBuilder output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
 
-    HashMap<String, String> activeAnnotations = new HashMap<>();
+    HashMap<String, List<String>> activeAnnotations = new HashMap<>();
     List<String> activeField = new ArrayList<>();
 
     class FieldAnnotationAdapter extends FieldVisitor {
 
       @Override
       public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        activeAnnotations.put(activeField.get(0), descriptor);
+        if (activeAnnotations.containsKey(activeField.get(0)))
+          activeAnnotations.get(activeField.get(0)).add(descriptor);
+        else
+          activeAnnotations.put(activeField.get(0), List.of(descriptor));
         return super.visitAnnotation(descriptor, visible);
       }
 
@@ -78,17 +83,24 @@ public class ClassConverter implements ToTypeScriptConverter {
           if (i > 0)
             output.append(" ");
 
-          try {
+//          epic hardcoded functionality that will actually hurt being "generic" in the longer run
+          String expectedFieldName = field.getName();
+          for (Annotation annotation : field.getDeclaredAnnotations())
+            if (annotation.annotationType().isAssignableFrom(JsonProperty.class))
+              expectedFieldName = ((JsonProperty) annotation).value();
+
+          output.append(expectedFieldName);
+
+          if (!activeAnnotations.isEmpty())
+            for (String annotation : activeAnnotations.getOrDefault(field.getName(), List.of()))
+              if (annotation.matches(".*Nullable;.*"))
+                output.append("?");
+
+          output.append(": ");
+
+          if (field.getGenericType() instanceof ParameterizedType) {
             ParameterizedType genericType = (ParameterizedType) field.getGenericType();
             Type[] parameterTypes = genericType.getActualTypeArguments();
-            String annotation = activeAnnotations.get(field.getName());
-
-            output.append(field.getName());
-            if (annotation != null && annotation.matches("(.*)Nullable;")) {
-              output.append("?");
-            }
-
-            output.append(": ");
 
             if (castMap.containsKey(field.getType().getName())) {
               output.append(castMap.get(field.getType().getName()));
@@ -105,18 +117,11 @@ public class ClassConverter implements ToTypeScriptConverter {
               }
               output.append(">");
             }
-          } catch (ClassCastException e) {
-            String annotation = activeAnnotations.get(field.getName());
-
-            output.append(field.getName());
-            if (annotation != null && annotation.matches("(.*)Nullable;"))
-              output.append("?");
-
-            StringBuilder append = output.append(": ").append(castMap.getOrDefault(
+          } else {
+            output.append(castMap.getOrDefault(
               field.getType().getName(),
               getTSType(field.getType())));
           }
-
           output.append(";");
         }
       } catch (Exception e) {
