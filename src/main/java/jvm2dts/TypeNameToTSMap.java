@@ -58,9 +58,12 @@ public class TypeNameToTSMap {
     typeNameToTS.put(ZoneOffset.class, "string");
     typeNameToTS.put(ZoneOffsetTransition.class, "string");
     typeNameToTS.put(ZoneOffsetTransitionRule.class, "string");
+
   }
 
   public static String getTSType(Class<?> javaType) {
+    if (javaType == Object.class)
+      return "any";
     return typeNameToTS.getOrDefault(javaType, typeNameToTS.getOrDefault(javaType.getSuperclass(), getName(javaType)));
   }
 }

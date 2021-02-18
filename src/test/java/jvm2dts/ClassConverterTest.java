@@ -40,7 +40,8 @@ class ClassConverterTest {
   @Test
   void jsonProperty() {
     assertThat(converter.convert(JsonPropertyObject.class)).isEqualTo("interface JsonPropertyObject {" +
-      "namedProperty: boolean;}");
+      "namedProperty: boolean; " +
+      "literalObject: any;}");
   }
 
   @SuppressWarnings("unused")
@@ -65,8 +66,8 @@ class ClassConverterTest {
 
   @SuppressWarnings("unused")
   static class JsonPropertyObject {
-    @JsonProperty("namedProperty")
-    Boolean notWhatIWant;
+    @JsonProperty("namedProperty") Boolean notWhatIWant;
+    Object literalObject = new Object();
   }
 }
 
