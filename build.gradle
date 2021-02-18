@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.codeborne'
-version '1.2.5'
+version '1.2.6'
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
@@ -101,8 +101,8 @@ dependencies {
     testImplementation 'org.jetbrains:annotations:20.1.0'
     testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.1'
 
-    compile 'org.ow2.asm:asm:9.0'
-    compile 'com.beust:jcommander:1.78'
+    implementation 'org.ow2.asm:asm:9.0'
+    implementation 'com.beust:jcommander:1.78'
 }
 
 test {

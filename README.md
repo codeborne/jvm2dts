@@ -26,19 +26,25 @@ The TypeScript interfaces output from stdout and all errors are through stderr (
 ### Using in Gradle (Kotlin DSL)
 
 ```kotlin
+
+val jvm2dts by configurations.creating {
+    extendsFrom(configurations.implementation.get())
+}
+
 // Required dependencies
 dependencies {
-  compileOnly("com.codeborne:jvm2dts:1.2.5")
+  jvm2dts("com.codeborne:jvm2dts:1.2.6")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums
 // This buffers the standard output of the task into a stream, then gets written to a file
 tasks.register("generateTSTypes") {
   doLast {
-    File("ui/api/types.ts").writeText(ByteArrayOutputStream().use { out ->
+      val mainSource = sourceSets.main.get()
+      File("ui/api/types.ts").writeText(ByteArrayOutputStream().use { out ->
       project.exec {
         standardOutput = out
-        commandLine = """java -classpath ${sourceSets.main.get().runtimeClasspath.asPath}${File.pathSeparator}${sourceSets.main.get().compileClasspath.asPath}
+        commandLine = """java -classpath ${jvm2dts.asPath}${File.pathSeparator}${mainSource.runtimeClasspath.asPath}
           jvm2dts.Main 
           -exclude .*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*
           -cast MyNumericClass=number
