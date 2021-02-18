@@ -1,6 +1,5 @@
 package jvm2dts.types;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jvm2dts.ToTypeScriptConverter;
 import org.objectweb.asm.*;
 
@@ -83,11 +82,10 @@ public class ClassConverter implements ToTypeScriptConverter {
           if (i > 0)
             output.append(" ");
 
-//          epic hardcoded functionality that will actually hurt being "generic" in the longer run
           String expectedFieldName = field.getName();
           for (Annotation annotation : field.getDeclaredAnnotations())
-            if (annotation.annotationType().isAssignableFrom(JsonProperty.class))
-              expectedFieldName = ((JsonProperty) annotation).value();
+            if (annotation.annotationType().getSimpleName().matches("JsonProperty"))
+              expectedFieldName = (String) annotation.getClass().getMethod("value").invoke(annotation);
 
           output.append(expectedFieldName);
 
