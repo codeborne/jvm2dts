@@ -26,7 +26,7 @@ public class EnumConverter implements ToTypeScriptConverter {
           output.append(", ");
       }
     } catch (Exception e) {
-      logger.log(Level.WARNING, e.toString());
+      logger.log(Level.WARNING, "Converting Enum failed: " + clazz, e);
     }
 
     output.append("}");

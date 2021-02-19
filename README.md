@@ -26,14 +26,13 @@ The TypeScript interfaces output from stdout and all errors are through stderr (
 ### Using in Gradle (Kotlin DSL)
 
 ```kotlin
-
 val jvm2dts by configurations.creating {
     extendsFrom(configurations.implementation.get())
 }
 
 // Required dependencies
 dependencies {
-  jvm2dts("com.codeborne:jvm2dts:1.2.6")
+  jvm2dts("com.codeborne:jvm2dts:1.2.7")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums

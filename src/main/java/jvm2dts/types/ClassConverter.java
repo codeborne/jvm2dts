@@ -9,6 +9,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.logging.Level;
 
 import static jvm2dts.NameConverter.getName;
 import static jvm2dts.TypeNameToTSMap.getTSType;
@@ -28,8 +29,8 @@ public class ClassConverter implements ToTypeScriptConverter {
 
     StringBuilder output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
 
-    HashMap<String, List<String>> activeAnnotations = new HashMap<>();
-    List<String> activeField = new ArrayList<>();
+    HashMap<String, ArrayList<String>> activeAnnotations = new HashMap<>();
+    ArrayList<String> activeField = new ArrayList<>();
 
     class FieldAnnotationAdapter extends FieldVisitor {
 
@@ -38,7 +39,7 @@ public class ClassConverter implements ToTypeScriptConverter {
         if (activeAnnotations.containsKey(activeField.get(0)))
           activeAnnotations.get(activeField.get(0)).add(descriptor);
         else
-          activeAnnotations.put(activeField.get(0), List.of(descriptor));
+          activeAnnotations.put(activeField.get(0), new ArrayList<>(Collections.singleton(descriptor)));
         return super.visitAnnotation(descriptor, visible);
       }
 
@@ -90,7 +91,7 @@ public class ClassConverter implements ToTypeScriptConverter {
           output.append(expectedFieldName);
 
           if (!activeAnnotations.isEmpty())
-            for (String annotation : activeAnnotations.getOrDefault(field.getName(), List.of()))
+            for (String annotation : activeAnnotations.getOrDefault(field.getName(), new ArrayList<>()))
               if (annotation.matches(".*Nullable;.*"))
                 output.append("?");
 
@@ -123,10 +124,7 @@ public class ClassConverter implements ToTypeScriptConverter {
           output.append(";");
         }
       } catch (Exception e) {
-        logger.warning(
-          e.getMessage() + System.lineSeparator() + Arrays.toString(e.getStackTrace())
-            .substring(1).replace(", ", System.lineSeparator())
-        );
+        logger.log(Level.SEVERE, "Failed to convert " + clazz, e);
       }
 
       output.append("}");
