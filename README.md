@@ -26,9 +26,7 @@ The TypeScript interfaces output from stdout and all errors are through stderr (
 ### Using in Gradle (Kotlin DSL)
 
 ```kotlin
-val jvm2dts by configurations.creating {
-    extendsFrom(configurations.implementation.get())
-}
+val jvm2dts by configurations.creating
 
 // Required dependencies
 dependencies {
@@ -37,13 +35,14 @@ dependencies {
 
 // Create the Gradle task to generate TypeScript interfaces and enums
 // This buffers the standard output of the task into a stream, then gets written to a file
-tasks.register("generateTSTypes") {
+tasks.register("generateTSTypes") { 
+  dependsOn("classes")
   doLast {
       val mainSource = sourceSets.main.get()
       File("ui/api/types.ts").writeText(ByteArrayOutputStream().use { out ->
       project.exec {
         standardOutput = out
-        commandLine = """java -classpath ${jvm2dts.asPath}${File.pathSeparator}${mainSource.runtimeClasspath.asPath}
+        commandLine = """java -classpath ${(jvm2dts + sourceSets.main.get().runtimeClasspath).asPath}
           jvm2dts.Main 
           -exclude .*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*
           -cast MyNumericClass=number
@@ -62,5 +61,10 @@ will always be undefined - if you have enums, it is suggested to write into a ``
 
 ### Nullability
 
-jvm2dts can read *Nullable* annotations and will append ``?`` to the name of a variable.
+jvm2dts can read _Nullable_ annotations and will append ``?`` to the name of a variable.
 This is done using ASM, so it may need to be updated once new versions of Java release.
+
+### JsonProperty (from [com.fasterxml.jackson.core/jackson-annotations](https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations))
+
+jvm2dts can read _JsonProperty_ annotations and uses reflection to obtain the value()
+- If using Kotlin, the annotations should **target the field** to be accessible for jvm2dts
