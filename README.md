@@ -30,7 +30,7 @@ val jvm2dts by configurations.creating
 
 // Required dependencies
 dependencies {
-  jvm2dts("com.codeborne:jvm2dts:1.2.7")
+  jvm2dts("com.codeborne:jvm2dts:1.2.8")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums

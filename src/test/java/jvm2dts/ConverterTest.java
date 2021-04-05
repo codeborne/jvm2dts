@@ -17,9 +17,12 @@ public class ConverterTest {
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
       "mapInMap: {[key: string]: {[key: string]: number}}; " +
-      "generic: Generic<T,U,V>; " +
-      "extendedGeneric: ExtendedGeneric<T>; " +
-      "rawType: ArrayList;}");
+      "extendedGeneric: SingleGeneric<T>; " +
+      "superGeneric: SingleGeneric<T>; " +
+      "generic: MultiGeneric<T,U,V>; " +
+      "superGenericList: Role[]; " +
+      "rawType: ArrayList;" +
+      "}");
   }
 
   enum Role {
@@ -32,14 +35,16 @@ public class ConverterTest {
     List<UUID> ids;
     Map<String, Integer> map;
     Map<String, Map<String, Integer>> mapInMap;
-    Generic<?, ?, ?> generic;
-    ExtendedGeneric<? extends Role> extendedGeneric;
+    SingleGeneric<? extends Role> extendedGeneric;
+    SingleGeneric<? super Role> superGeneric;
+    MultiGeneric<?, ?, ?> generic;
+    List<? super Role> superGenericList;
     ArrayList rawType;
 
-    static boolean doNotGenerate = true;
+    static boolean doNotGenerateStatics = true;
     static Date unwantedDate = new Date();
   }
 
-  static class Generic<T, U, V> {}
-  static class ExtendedGeneric<T> {}
+  static class MultiGeneric<T, U, V> {}
+  static class SingleGeneric<T> {}
 }
