@@ -19,6 +19,23 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
 
+  private void convertIterableGenerics(Type type, StringBuilder typeBuffer) throws ClassCastException {
+    if (type instanceof WildcardType) {
+      WildcardType wildcardType = (WildcardType) type;
+      Type[] bounds = wildcardType.getLowerBounds();
+
+      if (bounds.length == 0) {
+        bounds = wildcardType.getUpperBounds();
+      }
+
+      typeBuffer.append(getTSType((Class<?>) bounds[0]));
+    } else if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      typeBuffer.append(getTSType((Class<?>) parameterizedType.getRawType()));
+    } else
+      typeBuffer.append(getTSType((Class<?>) type));
+  }
+
   public String convert(Class<?> clazz) {
     return convert(clazz, new HashMap<>());
   }
@@ -98,59 +115,55 @@ public class ClassConverter implements ToTypeScriptConverter {
 
           fieldBuffer.append(": ");
 
+          boolean isIterable = false;
           try {
+            Class<?> fieldType = field.getType();
             StringBuilder typeBuffer = new StringBuilder();
+
             if (field.getGenericType() instanceof ParameterizedType) {
               ParameterizedType genericType = (ParameterizedType) field.getGenericType();
               Type[] parameterTypes = genericType.getActualTypeArguments();
-              if (castMap.containsKey(field.getType().getName())) {
-                typeBuffer.append(castMap.get(field.getType().getName()));
-              } else if (Map.class.isAssignableFrom(field.getType())) {
+
+
+              if (castMap.containsKey(fieldType.getName())) {
+                typeBuffer.append(castMap.get(fieldType.getName()));
+              } else if (Map.class.isAssignableFrom(fieldType)) {
                 typeBuffer.append(readAsMapGeneric(parameterTypes, castMap));
-              } else if (Iterable.class.isAssignableFrom(field.getType())) {
-                // TODO: will not work with iterables that have more than one generic
-                // obscure piece "retrofitted" from https://issues.apache.org/jira/browse/CXF-3470
-                if (parameterTypes[0] instanceof WildcardType) {
-                  WildcardType wildcardType = (WildcardType) parameterTypes[0];
-                  Type[] bounds = wildcardType.getLowerBounds();
-                  if (bounds.length == 0) {
-                    bounds = wildcardType.getUpperBounds();
-                  }
-
-                  // TODO: get the actual type rather than defaulting to any
-                  //  there are weird anomalies, where test results here
-                  //  give jvm2dts.ConverterTest$Role while an external
-                  //  project returns package.Role<?> (external project uses Kotlin)
-                  //  getTypeName only returns a String, are there any other options?
-
-                  // typeBuffer.append(bounds[0].getTypeName()).append("[]");
-                  typeBuffer.append("any");
-                } else
-                  typeBuffer.append(getTSType((Class<?>) parameterTypes[0])).append("[]");
+              } else if (Iterable.class.isAssignableFrom(fieldType)) {
+                isIterable = true;
+                for (Type parameterType : parameterTypes) {
+                  convertIterableGenerics(parameterType, typeBuffer);
+                }
               } else {
-                typeBuffer.append(getTSType(field.getType()));
+                typeBuffer.append(getTSType(fieldType));
                 typeBuffer.append("<");
+
                 for (int j = 0; j < parameterTypes.length; j++) {
                   if (j > 0) typeBuffer.append(",");
                   typeBuffer.append(ALPHABET[j % ALPHABET.length]);
                 }
                 typeBuffer.append(">");
               }
+
+
             } else {
               typeBuffer.append(castMap.getOrDefault(
-                field.getType().getName(),
-                getTSType(field.getType())));
+                fieldType.getName(),
+                getTSType(fieldType)));
             }
 
             output.append(fieldBuffer);
             output.append(typeBuffer);
+            if (isIterable) output.append("[]");
             output.append(";");
           } catch (Exception e) {
             output.append(fieldBuffer);
             output.append("any");
+            if (isIterable) output.append("[]");
             output.append(";");
             logger.log(Level.SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + clazz + "`, defaulting to `any`", e);
           }
+
         }
       } catch (
         Exception e) {

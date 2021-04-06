@@ -21,6 +21,7 @@ public class ConverterTest {
       "superGeneric: SingleGeneric<T>; " +
       "generic: MultiGeneric<T,U,V>; " +
       "superGenericList: Role[]; " +
+      "superGenericRecursiveList: SingleGeneric[]; " +
       "rawType: ArrayList;" +
       "}");
   }
@@ -39,6 +40,7 @@ public class ConverterTest {
     SingleGeneric<? super Role> superGeneric;
     MultiGeneric<?, ?, ?> generic;
     List<? super Role> superGenericList;
+    List<SingleGeneric<?>> superGenericRecursiveList;
     ArrayList rawType;
 
     static boolean doNotGenerateStatics = true;
