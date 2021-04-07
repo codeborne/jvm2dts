@@ -12,7 +12,7 @@ public class ConverterTest {
   @Test
   void collections() {
     assertThat(converter.convert(Collections.class)).isEqualTo("interface Collections {" +
-      "roles: Role[]; " +
+      "roles: ConverterTestRole[]; " +
       "dates: Date[]; " +
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
@@ -20,7 +20,7 @@ public class ConverterTest {
       "extendedGeneric: SingleGeneric<T>; " +
       "superGeneric: SingleGeneric<T>; " +
       "generic: MultiGeneric<T,U,V>; " +
-      "superGenericList: Role[]; " +
+      "superGenericList: ConverterTestRole[]; " +
       "superGenericRecursiveList: SingleGeneric[]; " +
       "rawType: ArrayList;" +
       "}");
@@ -41,7 +41,7 @@ public class ConverterTest {
     MultiGeneric<?, ?, ?> generic;
     List<? super Role> superGenericList;
     List<SingleGeneric<?>> superGenericRecursiveList;
-    ArrayList rawType;
+    @SuppressWarnings("rawtypes") ArrayList rawType;
 
     static boolean doNotGenerateStatics = true;
     static Date unwantedDate = new Date();

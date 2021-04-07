@@ -19,7 +19,7 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
 
-  private void convertIterableGenerics(Type type, StringBuilder typeBuffer) throws ClassCastException {
+  private void convertIterableGenerics(Type type, StringBuilder typeBuffer, Map<String, String> castMap) throws ClassCastException {
     if (type instanceof WildcardType) {
       WildcardType wildcardType = (WildcardType) type;
       Type[] bounds = wildcardType.getLowerBounds();
@@ -27,13 +27,16 @@ public class ClassConverter implements ToTypeScriptConverter {
       if (bounds.length == 0) {
         bounds = wildcardType.getUpperBounds();
       }
-
-      typeBuffer.append(getTSType((Class<?>) bounds[0]));
+      Class<?> target = (Class<?>) bounds[0];
+      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
     } else if (type instanceof ParameterizedType) {
       ParameterizedType parameterizedType = (ParameterizedType) type;
-      typeBuffer.append(getTSType((Class<?>) parameterizedType.getRawType()));
-    } else
-      typeBuffer.append(getTSType((Class<?>) type));
+      Class<?> target = (Class<?>) parameterizedType.getRawType();
+      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+    } else {
+      Class<?> target = (Class<?>) type;
+      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+    }
   }
 
   public String convert(Class<?> clazz) {
@@ -132,7 +135,7 @@ public class ClassConverter implements ToTypeScriptConverter {
               } else if (Iterable.class.isAssignableFrom(fieldType)) {
                 isIterable = true;
                 for (Type parameterType : parameterTypes) {
-                  convertIterableGenerics(parameterType, typeBuffer);
+                  convertIterableGenerics(parameterType, typeBuffer, castMap);
                 }
               } else {
                 typeBuffer.append(getTSType(fieldType));
@@ -150,6 +153,8 @@ public class ClassConverter implements ToTypeScriptConverter {
               typeBuffer.append(castMap.getOrDefault(
                 fieldType.getName(),
                 getTSType(fieldType)));
+              if (fieldType.isArray() && !typeBuffer.toString().endsWith("[]"))
+                typeBuffer.append("[]");
             }
 
             output.append(fieldBuffer);
