@@ -27,8 +27,12 @@ public class ClassConverter implements ToTypeScriptConverter {
       if (bounds.length == 0) {
         bounds = wildcardType.getUpperBounds();
       }
-      Class<?> target = (Class<?>) bounds[0];
-      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+      if (bounds[0] instanceof ParameterizedType) {
+        convertIterableGenerics(bounds[0], typeBuffer, castMap);
+      } else {
+        Class<?> target = (Class<?>) bounds[0];
+        typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+      }
     } else if (type instanceof ParameterizedType) {
       ParameterizedType parameterizedType = (ParameterizedType) type;
       Class<?> target = (Class<?>) parameterizedType.getRawType();
