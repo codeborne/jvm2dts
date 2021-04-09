@@ -19,30 +19,6 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
 
-  private void convertIterableGenerics(Type type, StringBuilder typeBuffer, Map<String, String> castMap) throws ClassCastException {
-    if (type instanceof WildcardType) {
-      WildcardType wildcardType = (WildcardType) type;
-      Type[] bounds = wildcardType.getLowerBounds();
-
-      if (bounds.length == 0) {
-        bounds = wildcardType.getUpperBounds();
-      }
-      if (bounds[0] instanceof ParameterizedType) {
-        convertIterableGenerics(bounds[0], typeBuffer, castMap);
-      } else {
-        Class<?> target = (Class<?>) bounds[0];
-        typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
-      }
-    } else if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
-      Class<?> target = (Class<?>) parameterizedType.getRawType();
-      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
-    } else {
-      Class<?> target = (Class<?>) type;
-      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
-    }
-  }
-
   public String convert(Class<?> clazz) {
     return convert(clazz, new HashMap<>());
   }
@@ -151,8 +127,6 @@ public class ClassConverter implements ToTypeScriptConverter {
                 }
                 typeBuffer.append(">");
               }
-
-
             } else {
               typeBuffer.append(castMap.getOrDefault(
                 fieldType.getName(),
@@ -160,7 +134,6 @@ public class ClassConverter implements ToTypeScriptConverter {
               if (fieldType.isArray() && !typeBuffer.toString().endsWith("[]"))
                 typeBuffer.append("[]");
             }
-
             output.append(fieldBuffer);
             output.append(typeBuffer);
             if (isIterable) output.append("[]");
@@ -174,8 +147,7 @@ public class ClassConverter implements ToTypeScriptConverter {
           }
 
         }
-      } catch (
-        Exception e) {
+      } catch (Exception e) {
         logger.log(Level.SEVERE, "Failed to convert " + clazz, e);
       }
 
@@ -186,7 +158,31 @@ public class ClassConverter implements ToTypeScriptConverter {
     return "";
   }
 
-  public String readAsMapGeneric(Type[] parameterTypes, Map<String, String> castMap) {
+  private void convertIterableGenerics(Type type, StringBuilder typeBuffer, Map<String, String> castMap) throws ClassCastException {
+    if (type instanceof WildcardType) {
+      WildcardType wildcardType = (WildcardType) type;
+      Type[] bounds = wildcardType.getLowerBounds();
+
+      if (bounds.length == 0) {
+        bounds = wildcardType.getUpperBounds();
+      }
+      if (bounds[0] instanceof ParameterizedType) {
+        convertIterableGenerics(bounds[0], typeBuffer, castMap);
+      } else {
+        Class<?> target = (Class<?>) bounds[0];
+        typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+      }
+    } else if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      Class<?> target = (Class<?>) parameterizedType.getRawType();
+      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+    } else {
+      Class<?> target = (Class<?>) type;
+      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+    }
+  }
+
+  private String readAsMapGeneric(Type[] parameterTypes, Map<String, String> castMap) {
     StringBuilder output = new StringBuilder();
 
     output.append("{");
