@@ -6,6 +6,7 @@ import com.beust.jcommander.Parameter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -20,12 +21,17 @@ public class Main {
     @Parameter(names = {"-e", "-exclude"}, description = "Excludes classes in the generation matching a Java RegExp pattern")
     private String excludeRegex;
 
-    @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching key into value")
+    @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching the key into specified value")
     private String cast;
+
+    @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")
+    private String classesDir;
+
+    @Parameter(names = {"-excludeDir"}, description = "Comma-separated list to filter out package names when using classesDir")
+    private String excludeDirs;
 
     @Parameter(names = {"-h", "-help"}, help = true)
     private boolean help;
-
   }
 
   public static void main(String[] args) {
@@ -35,21 +41,54 @@ public class Main {
       .build();
     jc.parse(args);
     if (args.length < 1 || parsedArgs.help) {
-      err.println("Example: java -classpath path/to/package " + Main.class.getName() + " -exclude regexp -cast MyClass=number,AnotherClass=string package");
+      err.println("Example: java -classpath path/to/package " + Main.class.getName() + " -exclude MyRegExp -cast MyClass=number,AnotherClass=string package1 package2 package3");
       jc.usage();
       exit(0);
     }
 
+    List<String> packages = parsedArgs.packages;
 
-    for (int i = 0; i < parsedArgs.packages.size(); i++) {
+    ClassLoader classLoader = Main.class.getClassLoader();
+    if (packages.isEmpty() && parsedArgs.classesDir != null) {
+      String[] excludeDirs = (parsedArgs.excludeDirs != null ? parsedArgs.excludeDirs.split(",") : new String[]{});
+      try {
+        Path basePath = Paths.get(parsedArgs.classesDir);
+        Files.walk(basePath)
+          .filter(Files::isDirectory)
+          .filter(path -> !path.getFileName().toString().equals("META-INF"))
+          .filter(path -> !path.equals(basePath))
+          .filter(path -> Arrays.stream(excludeDirs).noneMatch(name -> basePath.relativize(path).toString().equals(name)))
+          .filter(path -> {
+            try {
+              return Files.list(path).anyMatch(Files::isRegularFile);
+            } catch (IOException ex) {
+              err.println("Failed to walk directory for files: " + path);
+              ex.printStackTrace();
+              return false;
+            }
+          })
+          .forEach(name -> packages.add(basePath.relativize(name).toString()));
 
-      String packageName = parsedArgs.packages.get(i);
+      } catch (IOException e) {
+        e.printStackTrace();
+        exit(2);
+      }
+      err.println("Packages detected: " + packages);
+    }
+
+    if (packages.isEmpty()) {
+      err.println("No packages found");
+      jc.usage();
+      exit(1);
+    }
+
+    for (String packageName : packages) {
       Converter converter = new Converter();
 
-      URL packageUrl = Main.class.getClassLoader().getResource(packageName.replace('.', '/'));
+      URL packageUrl = classLoader.getResource(packageName.replace('.', '/'));
       if (packageUrl == null) {
         err.println("Cannot load " + packageName + " using ClassLoader, is it missing from classpath?");
-        exit(2);
+        continue;
       }
 
       if (packageUrl.getProtocol().equals("file")) {
@@ -99,5 +138,6 @@ public class Main {
         exit(3);
       }
     }
+    exit(0);
   }
 }

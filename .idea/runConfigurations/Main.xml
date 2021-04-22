@@ -4,8 +4,6 @@
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="jvm2dts.Main" />
     <module name="jvm2dts.main" />
-    <option name="PROGRAM_PARAMETERS" value="-exclude (.*)(Service|Repository|Controller)$ auth tags" />
-    <option name="VM_PARAMETERS" value="-cp $USER_HOME$/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/9.0/af582ff60bc567c42d931500c3fdc20e0141ddf9/asm-9.0.jar:out/production/classes:../anonima/anonima/build/classes/kotlin/main:$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.4.21/4a668382d7c38688d3490afde93b6a113ed46698/kotlin-stdlib-1.4.21.jar" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
