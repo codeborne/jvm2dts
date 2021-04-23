@@ -14,5 +14,5 @@ jobs:
       - name: Build
         run: ./gradlew --info build
       - name: Test jvm2dts
-        run: ./gradlew --info test tests *
+        run: ./gradlew --info test
 
