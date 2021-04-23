@@ -13,3 +13,6 @@ jobs:
           java-version: 11
       - name: Build
         run: ./gradlew --info build
+      - name: Test jvm2dts
+        run: ./gradlew --info tests *
+
