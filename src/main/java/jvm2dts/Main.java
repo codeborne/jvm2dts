@@ -73,7 +73,6 @@ public class Main {
             }
           })
           .forEach(name -> packages.add(basePath.relativize(name).toString()));
-
       } catch (IOException e) {
         e.printStackTrace();
         exit(2);
@@ -108,21 +107,19 @@ public class Main {
             }
           }
 
-          Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile)
-            .filter(path -> {
-                String pathString = path.getFileName().toString();
-                if (pathString.endsWith(".class")) {
-                  if (exclude == null) return true;
+          Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile).filter(path -> {
+            String pathString = path.getFileName().toString();
+            if (pathString.endsWith(".class")) {
+              if (exclude == null) return true;
 
-                  String classString = pathString.substring(0, pathString.lastIndexOf('.'));
-                  if (classString.matches(exclude)) return false;
-                  return !classString.matches(".*\\$\\d+$");
-                }
-                return false;
-              }
-            )
-            .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
-            .sorted().forEach(className -> {
+              String classString = pathString.substring(0, pathString.lastIndexOf('.'));
+              if (classString.matches(exclude)) return false;
+              return !classString.matches(".*\\$\\d+$");
+            }
+            return false;
+          })
+          .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
+          .sorted().forEach(className -> {
             try {
               String converted = converter.convert(Class.forName(className), castMap);
               if (!converted.isEmpty()) {
