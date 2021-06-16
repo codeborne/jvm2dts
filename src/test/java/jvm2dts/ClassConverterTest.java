@@ -5,6 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import jvm2dts.types.ClassConverter;
 import org.junit.jupiter.api.Test;
 
+import java.util.Date;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ClassConverterTest {
@@ -12,7 +15,7 @@ class ClassConverterTest {
 
   @Test
   void modelClass() {
-    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole;}");
+    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole; listOfLong: number[]; listOfList: List[];}");
   }
 
   @Test
@@ -76,6 +79,8 @@ class Model {
   String name;
   int age;
   Role role;
+  List<Long> listOfLong;
+  List<List<String>> listOfList;
 
   enum Role {
     HELLO, WORLD
