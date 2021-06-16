@@ -11,6 +11,9 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static java.lang.System.*;
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 
 public class Main {
 
@@ -47,17 +50,19 @@ public class Main {
     }
 
     List<String> packages = parsedArgs.packages;
+    Path basePath = Paths.get(parsedArgs.classesDir);
+    Set<String> excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
+            stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
 
     ClassLoader classLoader = Main.class.getClassLoader();
     if (packages.isEmpty() && parsedArgs.classesDir != null) {
-      String[] excludeDirs = (parsedArgs.excludeDirs != null ? parsedArgs.excludeDirs.split(",") : new String[]{});
       try {
-        Path basePath = Paths.get(parsedArgs.classesDir);
         Files.walk(basePath)
+          .sorted()
           .filter(Files::isDirectory)
           .filter(path -> !path.getFileName().toString().equals("META-INF"))
           .filter(path -> !path.equals(basePath))
-          .filter(path -> Arrays.stream(excludeDirs).noneMatch(name -> basePath.relativize(path).toString().equals(name)))
+          .filter(path -> !excludeDirs.contains(basePath.relativize(path).toString()))
           .filter(path -> {
             try {
               return Files.list(path).anyMatch(Files::isRegularFile);
