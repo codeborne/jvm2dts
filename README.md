@@ -92,3 +92,11 @@ This is done using ASM, so the package may need to be updated once new versions 
 
 `jvm2dts` can read _JsonProperty_ annotations and uses reflection to obtain the `value()`
 - If using Kotlin, the annotations should **target the field** (`@field:JsonProperty()`) to be read by `jvm2dts`
+
+# Releasing a new version to Maven Central
+
+```
+MAVEN_USERNAME=xxx MAVEN_PASSWORD='xxx' ./gradlew publishSonaTypePublicationToMavenCentralRepository
+```
+
+Then navigate to sonatype.org, close, and then release the staging repository.
