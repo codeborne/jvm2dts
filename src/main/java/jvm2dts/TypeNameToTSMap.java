@@ -1,14 +1,14 @@
 package jvm2dts;
 
+import java.net.URI;
+import java.net.URL;
 import java.time.*;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.chrono.ChronoPeriod;
 import java.time.zone.ZoneOffsetTransition;
 import java.time.zone.ZoneOffsetTransitionRule;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 import static jvm2dts.NameConverter.getName;
 
@@ -28,6 +28,10 @@ public class TypeNameToTSMap {
     typeNameToTS.put(String.class, "string");
 
     typeNameToTS.put(UUID.class, "string");
+    typeNameToTS.put(URL.class, "string");
+    typeNameToTS.put(URI.class, "string");
+    typeNameToTS.put(Currency.class, "string");
+    typeNameToTS.put(Locale.class, "string");
 
     typeNameToTS.put(Date.class, "Date|string");
     typeNameToTS.put(LocalDate.class, "Date|string");
