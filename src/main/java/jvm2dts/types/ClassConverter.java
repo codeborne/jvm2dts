@@ -1,6 +1,7 @@
 package jvm2dts.types;
 
 import jvm2dts.ToTypeScriptConverter;
+import jvm2dts.TypeMapper;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -17,19 +18,18 @@ import java.util.Map;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.logging.Level.SEVERE;
-import static jvm2dts.NameConverter.getName;
-import static jvm2dts.TypeNameToTSMap.getTSType;
 import static org.objectweb.asm.Opcodes.ASM9;
 
 // TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
+  TypeMapper typeMapper;
 
-  public String convert(Class<?> clazz) {
-    return convert(clazz, new HashMap<>());
+  public ClassConverter(TypeMapper typeMapper) {
+    this.typeMapper = typeMapper;
   }
 
-  public String convert(Class<?> clazz, Map<String, String> castMap) {
+  @Override public String convert(Class<?> clazz) {
     var output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
     var activeAnnotations = new HashMap<String, List<String>>();
 
@@ -43,7 +43,7 @@ public class ClassConverter implements ToTypeScriptConverter {
           var field = fields[i];
           if (isStatic(field.getModifiers())) continue;
           if (i > 0) output.append(" ");
-          processField(field, castMap, output, activeAnnotations);
+          processField(field, output, activeAnnotations);
         }
       } catch (Exception e) {
         logger.log(SEVERE, "Failed to convert " + clazz, e);
@@ -56,7 +56,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     return "";
   }
 
-  private void processField(Field field, Map<String, String> castMap, StringBuilder out, HashMap<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  private void processField(Field field, StringBuilder out, HashMap<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
 
     var expectedFieldName = field.getName();
@@ -81,11 +81,10 @@ public class ClassConverter implements ToTypeScriptConverter {
       if (field.getGenericType() instanceof ParameterizedType) {
         var genericType = (ParameterizedType) field.getGenericType();
         var parameterTypes = genericType.getActualTypeArguments();
-        isIterable = processGenericField(castMap, typeBuffer, fieldType, parameterTypes);
+        isIterable = processGenericField(typeBuffer, fieldType, parameterTypes);
       } else {
-        typeBuffer.append(castMap.getOrDefault(fieldType.getName(), getTSType(fieldType)));
-        if (fieldType.isArray() && !typeBuffer.toString().endsWith("[]"))
-          typeBuffer.append("[]");
+        isIterable = fieldType.isArray();
+        typeBuffer.append(typeMapper.getTSType(isIterable ? fieldType.getComponentType() : fieldType));
       }
       out.append(fieldBuffer);
       out.append(typeBuffer);
@@ -100,19 +99,17 @@ public class ClassConverter implements ToTypeScriptConverter {
     }
   }
 
-  private boolean processGenericField(Map<String, String> castMap, StringBuilder typeBuffer, Class<?> fieldType, Type[] parameterTypes) {
+  private boolean processGenericField(StringBuilder typeBuffer, Class<?> fieldType, Type[] parameterTypes) {
     var isIterable = false;
-    if (castMap.containsKey(fieldType.getName())) {
-      typeBuffer.append(castMap.get(fieldType.getName()));
-    } else if (Map.class.isAssignableFrom(fieldType)) {
-      typeBuffer.append(readAsMapGeneric(parameterTypes, castMap));
+    if (Map.class.isAssignableFrom(fieldType)) {
+      typeBuffer.append(readAsMapGeneric(parameterTypes));
     } else if (Iterable.class.isAssignableFrom(fieldType)) {
       isIterable = true;
       for (Type parameterType : parameterTypes) {
-        convertIterableGenerics(parameterType, typeBuffer, castMap);
+        convertIterableGenerics(parameterType, typeBuffer);
       }
     } else {
-      typeBuffer.append(getTSType(fieldType));
+      typeBuffer.append(typeMapper.getTSType(fieldType));
       typeBuffer.append("<");
 
       for (int j = 0; j < parameterTypes.length; j++) {
@@ -124,50 +121,32 @@ public class ClassConverter implements ToTypeScriptConverter {
     return isIterable;
   }
 
-  private void convertIterableGenerics(Type type, StringBuilder typeBuffer, Map<String, String> castMap) throws ClassCastException {
+  private void convertIterableGenerics(Type type, StringBuilder typeBuffer) throws ClassCastException {
     if (type instanceof WildcardType) {
       var wildcardType = (WildcardType) type;
       var bounds = wildcardType.getLowerBounds();
-
-      if (bounds.length == 0) {
-        bounds = wildcardType.getUpperBounds();
-      }
-      if (bounds[0] instanceof ParameterizedType) {
-        convertIterableGenerics(bounds[0], typeBuffer, castMap);
-      } else {
-        Class<?> target = (Class<?>) bounds[0];
-        typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
-      }
+      if (bounds.length == 0) bounds = wildcardType.getUpperBounds();
+      if (bounds[0] instanceof ParameterizedType) convertIterableGenerics(bounds[0], typeBuffer);
+      else typeBuffer.append(typeMapper.getTSType((Class<?>) bounds[0]));
     } else if (type instanceof ParameterizedType) {
       var parameterizedType = (ParameterizedType) type;
-      var target = (Class<?>) parameterizedType.getRawType();
-      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+      typeBuffer.append(typeMapper.getTSType((Class<?>) parameterizedType.getRawType()));
     } else {
-      var target = (Class<?>) type;
-      typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
+      typeBuffer.append(typeMapper.getTSType((Class<?>) type));
     }
   }
 
-  private String readAsMapGeneric(Type[] parameterTypes, Map<String, String> castMap) {
+  private String readAsMapGeneric(Type[] parameterTypes) {
     var output = new StringBuilder();
 
     output.append("{");
     for (int j = 0; j < parameterTypes.length; j = +2) {
       var value = parameterTypes[j + 1];
       output.append("[key: string]: ");
-      if (value instanceof ParameterizedType) {
-        output.append(
-          readAsMapGeneric(
-            ((ParameterizedType) value).getActualTypeArguments(), castMap
-          )
-        );
-      } else
-        output.append(
-          castMap.getOrDefault(
-            getName((Class<?>) value),
-            getTSType((Class<?>) value)
-          )
-        );
+      if (value instanceof ParameterizedType)
+        output.append(readAsMapGeneric(((ParameterizedType) value).getActualTypeArguments()));
+      else
+        output.append(typeMapper.getTSType((Class<?>) value));
     }
     output.append("}");
 

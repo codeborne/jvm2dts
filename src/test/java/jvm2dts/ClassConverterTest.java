@@ -1,17 +1,17 @@
 package jvm2dts;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.jetbrains.annotations.Nullable;
 import jvm2dts.types.ClassConverter;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
-import java.util.Date;
 import java.util.List;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ClassConverterTest {
-  private final ClassConverter converter = new ClassConverter();
+  private final ClassConverter converter = new ClassConverter(new TypeMapper(emptyMap()));
 
   @Test
   void modelClass() {

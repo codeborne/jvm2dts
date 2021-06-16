@@ -4,16 +4,17 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConverterTest {
-  private final Converter converter = new Converter();
+  private final Converter converter = new Converter(new TypeMapper(emptyMap()));
 
   @Test
   void collections() {
     assertThat(converter.convert(Collections.class)).isEqualTo("interface Collections {" +
       "roles: ConverterTestRole[]; " +
-      "dates: Date[]; " +
+      "dates: Date|string[]; " +
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
       "mapInMap: {[key: string]: {[key: string]: number}}; " +

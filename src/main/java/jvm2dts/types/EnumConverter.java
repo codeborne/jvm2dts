@@ -2,19 +2,13 @@ package jvm2dts.types;
 
 import jvm2dts.ToTypeScriptConverter;
 
-import java.util.Map;
 import java.util.logging.Level;
 
-import static jvm2dts.NameConverter.getName;
+import static jvm2dts.NameConverter.convertName;
 
 public class EnumConverter implements ToTypeScriptConverter {
-
-  public String convert(Class<?> clazz) {
-    return convert(clazz, null);
-  }
-
-  public String convert(Class<?> clazz, Map<String, String> castMap) {
-    StringBuilder output = new StringBuilder("enum ").append(getName(clazz)).append(" {");
+  @Override public String convert(Class<?> clazz) {
+    StringBuilder output = new StringBuilder("enum ").append(convertName(clazz)).append(" {");
 
     try {
       Object[] enumConstants = clazz.getEnumConstants();
