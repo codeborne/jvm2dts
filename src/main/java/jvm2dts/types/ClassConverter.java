@@ -6,10 +6,12 @@ import org.objectweb.asm.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
 import java.lang.reflect.Type;
-import java.util.*;
-import java.util.logging.Level;
+import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.logging.Level.SEVERE;
 import static jvm2dts.NameConverter.getName;
@@ -25,7 +27,7 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   public String convert(Class<?> clazz, Map<String, String> castMap) {
     final int ASM_API = Opcodes.ASM9;
-    StringBuilder output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
+    var output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
 
     HashMap<String, ArrayList<String>> activeAnnotations = new HashMap<>();
     ArrayList<String> activeField = new ArrayList<>();
@@ -68,20 +70,20 @@ public class ClassConverter implements ToTypeScriptConverter {
     Field[] fields = clazz.getDeclaredFields();
     if (fields.length > 0) {
       try {
-        InputStream in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-        ClassAnnotationReader reader = new ClassAnnotationReader(in);
+        var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
+        var reader = new ClassAnnotationReader(in);
         reader.accept(new ClassAdapter(), 0);
 
         for (int i = 0; i < fields.length; i++) {
-          StringBuilder fieldBuffer = new StringBuilder();
-          Field field = fields[i];
+          var fieldBuffer = new StringBuilder();
+          var field = fields[i];
 
           if (Modifier.isStatic(field.getModifiers())) continue;
 
           if (i > 0)
             fieldBuffer.append(" ");
 
-          String expectedFieldName = field.getName();
+          var expectedFieldName = field.getName();
           for (Annotation annotation : field.getDeclaredAnnotations())
             if (annotation.annotationType().getSimpleName().matches("JsonProperty"))
               expectedFieldName = (String) annotation.getClass().getMethod("value").invoke(annotation);
@@ -97,12 +99,12 @@ public class ClassConverter implements ToTypeScriptConverter {
 
           boolean isIterable = false;
           try {
-            Class<?> fieldType = field.getType();
-            StringBuilder typeBuffer = new StringBuilder();
+            var fieldType = field.getType();
+            var typeBuffer = new StringBuilder();
 
             if (field.getGenericType() instanceof ParameterizedType) {
-              ParameterizedType genericType = (ParameterizedType) field.getGenericType();
-              Type[] parameterTypes = genericType.getActualTypeArguments();
+              var genericType = (ParameterizedType) field.getGenericType();
+              var parameterTypes = genericType.getActualTypeArguments();
 
               if (castMap.containsKey(fieldType.getName())) {
                 typeBuffer.append(castMap.get(fieldType.getName()));
@@ -156,8 +158,8 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   private void convertIterableGenerics(Type type, StringBuilder typeBuffer, Map<String, String> castMap) throws ClassCastException {
     if (type instanceof WildcardType) {
-      WildcardType wildcardType = (WildcardType) type;
-      Type[] bounds = wildcardType.getLowerBounds();
+      var wildcardType = (WildcardType) type;
+      var bounds = wildcardType.getLowerBounds();
 
       if (bounds.length == 0) {
         bounds = wildcardType.getUpperBounds();
@@ -169,21 +171,21 @@ public class ClassConverter implements ToTypeScriptConverter {
         typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
       }
     } else if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
-      Class<?> target = (Class<?>) parameterizedType.getRawType();
+      var parameterizedType = (ParameterizedType) type;
+      var target = (Class<?>) parameterizedType.getRawType();
       typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
     } else {
-      Class<?> target = (Class<?>) type;
+      var target = (Class<?>) type;
       typeBuffer.append(castMap.getOrDefault(target.getName(), getTSType(target)));
     }
   }
 
   private String readAsMapGeneric(Type[] parameterTypes, Map<String, String> castMap) {
-    StringBuilder output = new StringBuilder();
+    var output = new StringBuilder();
 
     output.append("{");
     for (int j = 0; j < parameterTypes.length; j = +2) {
-      Type value = parameterTypes[j + 1];
+      var value = parameterTypes[j + 1];
       output.append("[key: string]: ");
       if (value instanceof ParameterizedType) {
         output.append(
