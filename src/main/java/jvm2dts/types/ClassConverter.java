@@ -1,21 +1,27 @@
 package jvm2dts.types;
 
 import jvm2dts.ToTypeScriptConverter;
-import org.objectweb.asm.*;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.*;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.logging.Level.SEVERE;
 import static jvm2dts.NameConverter.getName;
 import static jvm2dts.TypeNameToTSMap.getTSType;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 // TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
@@ -26,53 +32,15 @@ public class ClassConverter implements ToTypeScriptConverter {
   }
 
   public String convert(Class<?> clazz, Map<String, String> castMap) {
-    final int ASM_API = Opcodes.ASM9;
     var output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
+    var activeAnnotations = new HashMap<String, List<String>>();
 
-    HashMap<String, ArrayList<String>> activeAnnotations = new HashMap<>();
-    ArrayList<String> activeField = new ArrayList<>();
-
-    class FieldAnnotationAdapter extends FieldVisitor {
-      @Override
-      public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        if (activeAnnotations.containsKey(activeField.get(0)))
-          activeAnnotations.get(activeField.get(0)).add(descriptor);
-        else
-          activeAnnotations.put(activeField.get(0), new ArrayList<>(Collections.singleton(descriptor)));
-        return super.visitAnnotation(descriptor, visible);
-      }
-
-      public FieldAnnotationAdapter() {
-        super(ASM_API);
-      }
-    }
-
-    class ClassAdapter extends ClassVisitor {
-      public ClassAdapter() {
-        super(ASM_API);
-      }
-
-      @Override
-      public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-        // awful hack to access an upper class value inside an inner class
-        activeField.clear();
-        activeField.add(name);
-        return new FieldAnnotationAdapter();
-      }
-    }
-
-    class ClassAnnotationReader extends ClassReader {
-      public ClassAnnotationReader(InputStream in) throws IOException {
-        super(in);
-      }
-    }
-
-    Field[] fields = clazz.getDeclaredFields();
+    var fields = clazz.getDeclaredFields();
     if (fields.length > 0) {
       try {
         var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
         var reader = new ClassAnnotationReader(in);
-        reader.accept(new ClassAdapter(), 0);
+        reader.accept(new ClassAdapter(activeAnnotations), 0);
 
         for (int i = 0; i < fields.length; i++) {
           var fieldBuffer = new StringBuilder();
@@ -204,5 +172,38 @@ public class ClassConverter implements ToTypeScriptConverter {
     output.append("}");
 
     return output.toString();
+  }
+}
+
+class ClassAdapter extends ClassVisitor {
+  Map<String, List<String>> activeAnnotations;
+
+  public ClassAdapter(Map<String, List<String>> activeAnnotations) {
+    super(ASM9);
+    this.activeAnnotations = activeAnnotations;
+  }
+
+  @Override public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+    return new FieldAnnotationAdapter(activeAnnotations.computeIfAbsent(name, k -> new ArrayList<>()));
+  }
+}
+
+class FieldAnnotationAdapter extends FieldVisitor {
+  List<String> activeAnnotations;
+
+  public FieldAnnotationAdapter(List<String> activeAnnotations) {
+    super(ASM9);
+    this.activeAnnotations = activeAnnotations;
+  }
+
+  @Override public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+    activeAnnotations.add(descriptor);
+    return super.visitAnnotation(descriptor, visible);
+  }
+}
+
+class ClassAnnotationReader extends ClassReader {
+  public ClassAnnotationReader(InputStream in) throws IOException {
+    super(in);
   }
 }
