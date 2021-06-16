@@ -56,7 +56,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     return "";
   }
 
-  private void processField(Field field, Map<String, String> castMap, StringBuilder output, HashMap<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  private void processField(Field field, Map<String, String> castMap, StringBuilder out, HashMap<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
 
     var expectedFieldName = field.getName();
@@ -81,44 +81,47 @@ public class ClassConverter implements ToTypeScriptConverter {
       if (field.getGenericType() instanceof ParameterizedType) {
         var genericType = (ParameterizedType) field.getGenericType();
         var parameterTypes = genericType.getActualTypeArguments();
-
-        if (castMap.containsKey(fieldType.getName())) {
-          typeBuffer.append(castMap.get(fieldType.getName()));
-        } else if (Map.class.isAssignableFrom(fieldType)) {
-          typeBuffer.append(readAsMapGeneric(parameterTypes, castMap));
-        } else if (Iterable.class.isAssignableFrom(fieldType)) {
-          isIterable = true;
-          for (Type parameterType : parameterTypes) {
-            convertIterableGenerics(parameterType, typeBuffer, castMap);
-          }
-        } else {
-          typeBuffer.append(getTSType(fieldType));
-          typeBuffer.append("<");
-
-          for (int j = 0; j < parameterTypes.length; j++) {
-            if (j > 0) typeBuffer.append(",");
-            typeBuffer.append(ALPHABET[j % ALPHABET.length]);
-          }
-          typeBuffer.append(">");
-        }
+        isIterable = processGenericField(castMap, typeBuffer, fieldType, parameterTypes);
       } else {
-        typeBuffer.append(castMap.getOrDefault(
-          fieldType.getName(),
-          getTSType(fieldType)));
+        typeBuffer.append(castMap.getOrDefault(fieldType.getName(), getTSType(fieldType)));
         if (fieldType.isArray() && !typeBuffer.toString().endsWith("[]"))
           typeBuffer.append("[]");
       }
-      output.append(fieldBuffer);
-      output.append(typeBuffer);
-      if (isIterable) output.append("[]");
-      output.append(";");
+      out.append(fieldBuffer);
+      out.append(typeBuffer);
+      if (isIterable) out.append("[]");
+      out.append(";");
     } catch (Exception e) {
-      output.append(fieldBuffer);
-      output.append("any");
-      if (isIterable) output.append("[]");
-      output.append(";");
+      out.append(fieldBuffer);
+      out.append("any");
+      if (isIterable) out.append("[]");
+      out.append(";");
       logger.log(SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + field.getDeclaringClass() + "`, defaulting to `any`", e);
     }
+  }
+
+  private boolean processGenericField(Map<String, String> castMap, StringBuilder typeBuffer, Class<?> fieldType, Type[] parameterTypes) {
+    var isIterable = false;
+    if (castMap.containsKey(fieldType.getName())) {
+      typeBuffer.append(castMap.get(fieldType.getName()));
+    } else if (Map.class.isAssignableFrom(fieldType)) {
+      typeBuffer.append(readAsMapGeneric(parameterTypes, castMap));
+    } else if (Iterable.class.isAssignableFrom(fieldType)) {
+      isIterable = true;
+      for (Type parameterType : parameterTypes) {
+        convertIterableGenerics(parameterType, typeBuffer, castMap);
+      }
+    } else {
+      typeBuffer.append(getTSType(fieldType));
+      typeBuffer.append("<");
+
+      for (int j = 0; j < parameterTypes.length; j++) {
+        if (j > 0) typeBuffer.append(",");
+        typeBuffer.append(ALPHABET[j % ALPHABET.length]);
+      }
+      typeBuffer.append(">");
+    }
+    return isIterable;
   }
 
   private void convertIterableGenerics(Type type, StringBuilder typeBuffer, Map<String, String> castMap) throws ClassCastException {
