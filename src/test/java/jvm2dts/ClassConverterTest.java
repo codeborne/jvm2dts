@@ -15,7 +15,7 @@ class ClassConverterTest {
 
   @Test
   void modelClass() {
-    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole; listOfLong: number[]; listOfList: List[];}");
+    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole; listOfLong: number[]; listOfList: string[][];}");
   }
 
   @Test

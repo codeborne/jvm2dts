@@ -130,7 +130,11 @@ public class ClassConverter implements ToTypeScriptConverter {
       else typeBuffer.append(typeMapper.getTSType((Class<?>) bounds[0]));
     } else if (type instanceof ParameterizedType) {
       var parameterizedType = (ParameterizedType) type;
-      typeBuffer.append(typeMapper.getTSType((Class<?>) parameterizedType.getRawType()));
+      var elementType = (Class<?>) parameterizedType.getRawType();
+      if (Iterable.class.isAssignableFrom(elementType))
+        typeBuffer.append(typeMapper.getTSType((Class<?>) parameterizedType.getActualTypeArguments()[0])).append("[]");
+      else
+        typeBuffer.append(typeMapper.getTSType(elementType));
     } else {
       typeBuffer.append(typeMapper.getTSType((Class<?>) type));
     }
