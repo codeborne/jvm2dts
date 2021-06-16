@@ -9,15 +9,13 @@ import org.objectweb.asm.FieldVisitor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.reflect.Modifier.isStatic;
 import static java.util.logging.Level.SEVERE;
 import static jvm2dts.NameConverter.getName;
 import static jvm2dts.TypeNameToTSMap.getTSType;
@@ -39,79 +37,13 @@ public class ClassConverter implements ToTypeScriptConverter {
     if (fields.length > 0) {
       try {
         var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-        var reader = new ClassAnnotationReader(in);
-        reader.accept(new ClassAdapter(activeAnnotations), 0);
+        new ClassAnnotationReader(in).accept(new ClassAdapter(activeAnnotations), 0);
 
         for (int i = 0; i < fields.length; i++) {
-          var fieldBuffer = new StringBuilder();
           var field = fields[i];
-
-          if (Modifier.isStatic(field.getModifiers())) continue;
-
-          if (i > 0)
-            fieldBuffer.append(" ");
-
-          var expectedFieldName = field.getName();
-          for (Annotation annotation : field.getDeclaredAnnotations())
-            if (annotation.annotationType().getSimpleName().matches("JsonProperty"))
-              expectedFieldName = (String) annotation.getClass().getMethod("value").invoke(annotation);
-
-          fieldBuffer.append(expectedFieldName);
-
-          if (!activeAnnotations.isEmpty())
-            for (String annotation : activeAnnotations.getOrDefault(field.getName(), new ArrayList<>()))
-              if (annotation.matches(".*Nullable;.*"))
-                fieldBuffer.append("?");
-
-          fieldBuffer.append(": ");
-
-          boolean isIterable = false;
-          try {
-            var fieldType = field.getType();
-            var typeBuffer = new StringBuilder();
-
-            if (field.getGenericType() instanceof ParameterizedType) {
-              var genericType = (ParameterizedType) field.getGenericType();
-              var parameterTypes = genericType.getActualTypeArguments();
-
-              if (castMap.containsKey(fieldType.getName())) {
-                typeBuffer.append(castMap.get(fieldType.getName()));
-              } else if (Map.class.isAssignableFrom(fieldType)) {
-                typeBuffer.append(readAsMapGeneric(parameterTypes, castMap));
-              } else if (Iterable.class.isAssignableFrom(fieldType)) {
-                isIterable = true;
-                for (Type parameterType : parameterTypes) {
-                  convertIterableGenerics(parameterType, typeBuffer, castMap);
-                }
-              } else {
-                typeBuffer.append(getTSType(fieldType));
-                typeBuffer.append("<");
-
-                for (int j = 0; j < parameterTypes.length; j++) {
-                  if (j > 0) typeBuffer.append(",");
-                  typeBuffer.append(ALPHABET[j % ALPHABET.length]);
-                }
-                typeBuffer.append(">");
-              }
-            } else {
-              typeBuffer.append(castMap.getOrDefault(
-                fieldType.getName(),
-                getTSType(fieldType)));
-              if (fieldType.isArray() && !typeBuffer.toString().endsWith("[]"))
-                typeBuffer.append("[]");
-            }
-            output.append(fieldBuffer);
-            output.append(typeBuffer);
-            if (isIterable) output.append("[]");
-            output.append(";");
-          } catch (Exception e) {
-            output.append(fieldBuffer);
-            output.append("any");
-            if (isIterable) output.append("[]");
-            output.append(";");
-            logger.log(SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + clazz + "`, defaulting to `any`", e);
-          }
-
+          if (isStatic(field.getModifiers())) continue;
+          if (i > 0) output.append(" ");
+          processField(field, castMap, output, activeAnnotations);
         }
       } catch (Exception e) {
         logger.log(SEVERE, "Failed to convert " + clazz, e);
@@ -122,6 +54,71 @@ public class ClassConverter implements ToTypeScriptConverter {
     }
 
     return "";
+  }
+
+  private void processField(Field field, Map<String, String> castMap, StringBuilder output, HashMap<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    var fieldBuffer = new StringBuilder();
+
+    var expectedFieldName = field.getName();
+    for (Annotation annotation : field.getDeclaredAnnotations())
+      if (annotation.annotationType().getSimpleName().matches("JsonProperty"))
+        expectedFieldName = (String) annotation.getClass().getMethod("value").invoke(annotation);
+
+    fieldBuffer.append(expectedFieldName);
+
+    if (!activeAnnotations.isEmpty())
+      for (String annotation : activeAnnotations.getOrDefault(field.getName(), new ArrayList<>()))
+        if (annotation.matches(".*Nullable;.*"))
+          fieldBuffer.append("?");
+
+    fieldBuffer.append(": ");
+
+    boolean isIterable = false;
+    try {
+      var fieldType = field.getType();
+      var typeBuffer = new StringBuilder();
+
+      if (field.getGenericType() instanceof ParameterizedType) {
+        var genericType = (ParameterizedType) field.getGenericType();
+        var parameterTypes = genericType.getActualTypeArguments();
+
+        if (castMap.containsKey(fieldType.getName())) {
+          typeBuffer.append(castMap.get(fieldType.getName()));
+        } else if (Map.class.isAssignableFrom(fieldType)) {
+          typeBuffer.append(readAsMapGeneric(parameterTypes, castMap));
+        } else if (Iterable.class.isAssignableFrom(fieldType)) {
+          isIterable = true;
+          for (Type parameterType : parameterTypes) {
+            convertIterableGenerics(parameterType, typeBuffer, castMap);
+          }
+        } else {
+          typeBuffer.append(getTSType(fieldType));
+          typeBuffer.append("<");
+
+          for (int j = 0; j < parameterTypes.length; j++) {
+            if (j > 0) typeBuffer.append(",");
+            typeBuffer.append(ALPHABET[j % ALPHABET.length]);
+          }
+          typeBuffer.append(">");
+        }
+      } else {
+        typeBuffer.append(castMap.getOrDefault(
+          fieldType.getName(),
+          getTSType(fieldType)));
+        if (fieldType.isArray() && !typeBuffer.toString().endsWith("[]"))
+          typeBuffer.append("[]");
+      }
+      output.append(fieldBuffer);
+      output.append(typeBuffer);
+      if (isIterable) output.append("[]");
+      output.append(";");
+    } catch (Exception e) {
+      output.append(fieldBuffer);
+      output.append("any");
+      if (isIterable) output.append("[]");
+      output.append(";");
+      logger.log(SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + field.getDeclaringClass() + "`, defaulting to `any`", e);
+    }
   }
 
   private void convertIterableGenerics(Type type, StringBuilder typeBuffer, Map<String, String> castMap) throws ClassCastException {
