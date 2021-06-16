@@ -11,12 +11,12 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.logging.Level;
 
+import static java.util.logging.Level.SEVERE;
 import static jvm2dts.NameConverter.getName;
 import static jvm2dts.TypeNameToTSMap.getTSType;
 
 // TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
-
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
 
   public String convert(Class<?> clazz) {
@@ -24,16 +24,13 @@ public class ClassConverter implements ToTypeScriptConverter {
   }
 
   public String convert(Class<?> clazz, Map<String, String> castMap) {
-
     final int ASM_API = Opcodes.ASM9;
-
     StringBuilder output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
 
     HashMap<String, ArrayList<String>> activeAnnotations = new HashMap<>();
     ArrayList<String> activeField = new ArrayList<>();
 
     class FieldAnnotationAdapter extends FieldVisitor {
-
       @Override
       public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
         if (activeAnnotations.containsKey(activeField.get(0)))
@@ -107,7 +104,6 @@ public class ClassConverter implements ToTypeScriptConverter {
               ParameterizedType genericType = (ParameterizedType) field.getGenericType();
               Type[] parameterTypes = genericType.getActualTypeArguments();
 
-
               if (castMap.containsKey(fieldType.getName())) {
                 typeBuffer.append(castMap.get(fieldType.getName()));
               } else if (Map.class.isAssignableFrom(fieldType)) {
@@ -143,12 +139,12 @@ public class ClassConverter implements ToTypeScriptConverter {
             output.append("any");
             if (isIterable) output.append("[]");
             output.append(";");
-            logger.log(Level.SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + clazz + "`, defaulting to `any`", e);
+            logger.log(SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + clazz + "`, defaulting to `any`", e);
           }
 
         }
       } catch (Exception e) {
-        logger.log(Level.SEVERE, "Failed to convert " + clazz, e);
+        logger.log(SEVERE, "Failed to convert " + clazz, e);
       }
 
       output.append("}");
