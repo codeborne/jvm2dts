@@ -113,9 +113,8 @@ jar {
     manifest {
         archiveBaseName = 'jvm2dts'
         attributes(
-                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'jvm2dts.Main'
+            'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' '),
+            'Main-Class': 'jvm2dts.Main'
         )
     }
-
 }
