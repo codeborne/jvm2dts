@@ -42,13 +42,13 @@ public class ClassConverter implements ToTypeScriptConverter {
         for (int i = 0; i < fields.length; i++) {
           var field = fields[i];
           if (isStatic(field.getModifiers())) continue;
-          if (i > 0) output.append(" ");
           processField(field, output, activeAnnotations);
         }
       } catch (Exception e) {
         logger.log(SEVERE, "Failed to convert " + clazz, e);
       }
 
+      if (output.charAt(output.length() - 1) == ' ') output.setLength(output.length() - 1);
       output.append("}");
       return output.toString();
     }
@@ -60,9 +60,13 @@ public class ClassConverter implements ToTypeScriptConverter {
     var fieldBuffer = new StringBuilder();
 
     var expectedFieldName = field.getName();
-    for (Annotation annotation : field.getDeclaredAnnotations())
-      if (annotation.annotationType().getSimpleName().matches("JsonProperty"))
+    for (Annotation annotation : field.getDeclaredAnnotations()) {
+      String annotationName = annotation.annotationType().getSimpleName();
+      if (annotationName.equals("JsonIgnore"))
+        return;
+      else if (annotationName.equals("JsonProperty"))
         expectedFieldName = (String) annotation.getClass().getMethod("value").invoke(annotation);
+    }
 
     fieldBuffer.append(expectedFieldName);
 
@@ -74,9 +78,9 @@ public class ClassConverter implements ToTypeScriptConverter {
     fieldBuffer.append(": ");
 
     boolean isIterable = false;
+    var typeBuffer = new StringBuilder();
     try {
       var fieldType = field.getType();
-      var typeBuffer = new StringBuilder();
 
       if (field.getGenericType() instanceof ParameterizedType) {
         var genericType = (ParameterizedType) field.getGenericType();
@@ -86,17 +90,14 @@ public class ClassConverter implements ToTypeScriptConverter {
         isIterable = fieldType.isArray();
         typeBuffer.append(typeMapper.getTSType(isIterable ? fieldType.getComponentType() : fieldType));
       }
-      out.append(fieldBuffer);
-      out.append(typeBuffer);
-      if (isIterable) out.append("[]");
-      out.append(";");
     } catch (Exception e) {
-      out.append(fieldBuffer);
-      out.append("any");
-      if (isIterable) out.append("[]");
-      out.append(";");
       logger.log(SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + field.getDeclaringClass() + "`, defaulting to `any`", e);
+      typeBuffer = new StringBuilder("any");
     }
+    out.append(fieldBuffer);
+    out.append(typeBuffer);
+    if (isIterable) out.append("[]");
+    out.append("; ");
   }
 
   private boolean processGenericField(StringBuilder typeBuffer, Class<?> fieldType, Type[] parameterTypes) {

@@ -34,7 +34,7 @@ val jvm2dts by configurations.creating
 
 // Required dependencies
 dependencies {
-  jvm2dts("com.codeborne:jvm2dts:1.5.0")
+  jvm2dts("com.codeborne:jvm2dts:1.5.1")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums
@@ -92,6 +92,8 @@ This is done using ASM, so the package may need to be updated once new versions 
 
 `jvm2dts` can read _JsonProperty_ annotations and uses reflection to obtain the `value()`
 - If using Kotlin, the annotations should **target the field** (`@field:JsonProperty()`) to be read by `jvm2dts`
+
+Similarly, fields annotated with _JsonIgnore_ will be omitted.
 
 # Releasing a new version to Maven Central
 

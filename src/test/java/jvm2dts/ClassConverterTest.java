@@ -1,5 +1,6 @@
 package jvm2dts;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jvm2dts.types.ClassConverter;
 import org.jetbrains.annotations.Nullable;
@@ -71,6 +72,7 @@ class ClassConverterTest {
   static class JsonPropertyObject {
     @JsonProperty("namedProperty") Boolean notWhatIWant;
     Object literalObject = new Object();
+    @JsonIgnore String ignore;
   }
 }
 
