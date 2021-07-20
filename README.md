@@ -101,4 +101,4 @@ Similarly, fields annotated with _JsonIgnore_ will be omitted.
 MAVEN_USERNAME=xxx MAVEN_PASSWORD='xxx' ./gradlew publishSonaTypePublicationToMavenCentralRepository
 ```
 
-Then navigate to sonatype.org, close, and then release the staging repository.
+Then navigate to https://oss.sonatype.org/, close, and then release the staging repository.
