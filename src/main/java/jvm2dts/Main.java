@@ -1,56 +1,125 @@
 package jvm2dts;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.*;
 
 import static java.lang.System.*;
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 
 public class Main {
 
-  public static void main(String[] args) {
-    if (args.length < 1) {
-      err.println("Usage: java -classpath path/to/package " + Main.class.getName() + "[-exclude regexp] <package>");
+  static class Args {
+    @Parameter
+    private List<String> packages = new ArrayList<>();
+
+    @Parameter(names = {"-e", "-exclude"}, description = "Excludes classes in the generation matching a Java RegExp pattern")
+    private String excludeRegex;
+
+    @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching the key into specified value")
+    private String cast;
+
+    @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")
+    private String classesDir;
+
+    @Parameter(names = {"-excludeDir"}, description = "Comma-separated list to filter out package names when using classesDir")
+    private String excludeDirs;
+
+    @Parameter(names = {"-h", "-help"}, help = true)
+    private boolean help;
+  }
+
+  public static void main(String[] args) throws ClassNotFoundException {
+    Args parsedArgs = new Args();
+    JCommander jc = JCommander.newBuilder()
+      .addObject(parsedArgs)
+      .build();
+    jc.parse(args);
+    if (args.length < 1 || parsedArgs.help) {
+      err.println("Example: java -classpath path/to/package " + Main.class.getName() + " -exclude MyRegExp -cast MyClass=number,AnotherClass=string package1 package2 package3");
+      jc.usage();
+      exit(0);
+    }
+
+    List<String> packages = parsedArgs.packages;
+    Path basePath = Paths.get(parsedArgs.classesDir);
+    Set<String> excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
+            stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
+
+    ClassLoader classLoader = Main.class.getClassLoader();
+    if (packages.isEmpty() && parsedArgs.classesDir != null) {
+      try {
+        Files.walk(basePath)
+          .sorted()
+          .filter(Files::isDirectory)
+          .filter(path -> !path.getFileName().toString().equals("META-INF"))
+          .filter(path -> !path.equals(basePath))
+          .filter(path -> !excludeDirs.contains(basePath.relativize(path).toString()))
+          .filter(path -> {
+            try {
+              return Files.list(path).anyMatch(Files::isRegularFile);
+            } catch (IOException ex) {
+              err.println("Failed to walk directory for files: " + path);
+              ex.printStackTrace();
+              return false;
+            }
+          })
+          .forEach(name -> packages.add(basePath.relativize(name).toString()));
+      } catch (IOException e) {
+        e.printStackTrace();
+        exit(2);
+      }
+      err.println("Packages detected: " + packages);
+    }
+
+    if (packages.isEmpty()) {
+      err.println("No packages found");
+      jc.usage();
       exit(1);
     }
 
-    String exclude = null;
-    if (args[0].equals("-exclude") && args.length > 1) {
-      exclude = args[1];
+    final Map<Class<?>, String> customTypes = new HashMap<>();
+    if (parsedArgs.cast != null) {
+      String[] kvpairs = parsedArgs.cast.split(",");
+      for (String pair : kvpairs) {
+        customTypes.put(Class.forName(pair.split("=")[0]), pair.split("=")[1]);
+      }
     }
+    Converter converter = new Converter(new TypeMapper(customTypes));
 
-    for (int i = 0; i < args.length; i++) {
-      if (exclude != null && i < 2)
-        continue;
+    for (String packageName : packages) {
 
-      String packageName = args[i];
-      Converter converter = new Converter();
-
-      URL packageUrl = Main.class.getClassLoader().getResource(packageName.replace('.', '/'));
+      URL packageUrl = classLoader.getResource(packageName.replace('.', '/'));
       if (packageUrl == null) {
-        err.println("Cannot load " + packageName + " using ClassLoader, missing from classpath?");
-        exit(2);
+        err.println("Cannot load " + packageName + " using ClassLoader, is it missing from classpath?");
+        continue;
       }
 
       if (packageUrl.getProtocol().equals("file")) {
-        final String finalExclude = exclude;
         try {
-          Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile)
-            .filter(path -> {
-              String pathString = path.getFileName().toString();
-                if (pathString.endsWith(".class")) {
-                  return finalExclude == null ||
-                    !pathString
-                      .substring(0, pathString.lastIndexOf('.'))
-                      .matches(finalExclude);
-                }
-                return false;
-              }
-            )
-            .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
-            .sorted().forEach(className -> {
+          final String exclude = parsedArgs.excludeRegex;
+
+          Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile).filter(path -> {
+            String pathString = path.getFileName().toString();
+            if (pathString.endsWith(".class")) {
+              if (exclude == null) return true;
+
+              String classString = pathString.substring(0, pathString.lastIndexOf('.'));
+              if (classString.matches(exclude)) return false;
+              return !classString.matches(".*\\$\\d+$");
+            }
+            return false;
+          })
+          .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
+          .sorted().forEach(className -> {
             try {
               String converted = converter.convert(Class.forName(className));
               if (!converted.isEmpty()) {
@@ -71,5 +140,6 @@ public class Main {
         exit(3);
       }
     }
+    exit(0);
   }
 }

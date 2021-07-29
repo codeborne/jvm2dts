@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.codeborne'
-version '1.1.2'
+version '1.5.1'
 
 sourceCompatibility = targetCompatibility = 11
 
@@ -101,9 +101,10 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.assertj:assertj-core:3.15.0'
     testImplementation 'org.jetbrains:annotations:20.1.0'
-    testRuntimeOnly 'org.ow2.asm:asm:9.0'
+    testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.1'
 
     implementation 'org.ow2.asm:asm:9.0'
+    implementation 'com.beust:jcommander:1.78'
 }
 
 test {
@@ -111,19 +112,11 @@ test {
 }
 
 jar {
-
-    from sourceSets.main.output
-    dependsOn configurations.runtimeClasspath
-    from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
-    }
-    
     manifest {
         archiveBaseName = 'jvm2dts'
         attributes(
-                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'jvm2dts.Main'
+            'Class-Path': configurations.runtimeClasspath.collect { it.getName() }.join(' '),
+            'Main-Class': 'jvm2dts.Main'
         )
     }
-
 }

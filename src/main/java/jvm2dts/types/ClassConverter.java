@@ -1,134 +1,193 @@
 package jvm2dts.types;
 
 import jvm2dts.ToTypeScriptConverter;
-import org.objectweb.asm.*;
+import jvm2dts.TypeMapper;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static jvm2dts.TypeNameToTSMap.getTSType;
+import static java.lang.reflect.Modifier.isStatic;
+import static java.util.logging.Level.SEVERE;
+import static org.objectweb.asm.Opcodes.ASM9;
 
+// TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
-  public String convert(Class<?> clazz) {
+  static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
+  TypeMapper typeMapper;
 
-    final int ASM_API = Opcodes.ASM9;
+  public ClassConverter(TypeMapper typeMapper) {
+    this.typeMapper = typeMapper;
+  }
 
-    StringBuilder output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
-    HashMap<String, String> activeAnnotations = new HashMap<>();
-    List<String> activeField = new ArrayList<>();
+  @Override public String convert(Class<?> clazz) {
+    var output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
+    var activeAnnotations = new HashMap<String, List<String>>();
 
-    class FieldAnnotationAdapter extends FieldVisitor {
-
-      @Override
-      public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        activeAnnotations.put(activeField.get(0), descriptor);
-        return super.visitAnnotation(descriptor, visible);
-      }
-
-      public FieldAnnotationAdapter() {
-        super(ASM_API);
-      }
-    }
-
-    class ClassAdapter extends ClassVisitor {
-      public ClassAdapter() {
-        super(ASM_API);
-      }
-
-      @Override
-      public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-        // awful hack to access an upper class value inside an inner class
-        activeField.clear();
-        activeField.add(name);
-        return new FieldAnnotationAdapter();
-      }
-    }
-
-    class ClassAnnotationReader extends ClassReader {
-      public ClassAnnotationReader(InputStream in) throws IOException {
-        super(in);
-      }
-    }
-
-    Field[] fields = clazz.getDeclaredFields();
+    var fields = clazz.getDeclaredFields();
     if (fields.length > 0) {
       try {
-
-        InputStream in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-        ClassAnnotationReader reader = new ClassAnnotationReader(in);
-        reader.accept(new ClassAdapter(), 0);
+        var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
+        new ClassAnnotationReader(in).accept(new ClassAdapter(activeAnnotations), 0);
 
         for (int i = 0; i < fields.length; i++) {
-          Field field = fields[i];
-          try {
-
-            ParameterizedType genericType = (ParameterizedType) field.getGenericType();
-            Type[] parameterTypes = genericType.getActualTypeArguments();
-
-            output.append(field.getName());
-
-            String annotation = activeAnnotations.get(field.getName());
-            if (annotation != null && annotation.matches("(.*)Nullable;")) {
-              output.append("?");
-            }
-
-
-            output.append(": ");
-            if (parameterTypes.length <= 1) {
-              output
-                .append(getTSType((Class<?>) parameterTypes[0]))
-                .append("[]");
-            } else {
-              output.append("{");
-              for (int j = 0; j < parameterTypes.length; j = +2) {
-                Type key = parameterTypes[j];
-                Type value = parameterTypes[j + 1];
-                output
-                  .append("[key: ")
-                  .append(getTSType((Class<?>) key))
-                  .append("]: ")
-                  .append(getTSType((Class<?>) value));
-              }
-              output.append("}");
-            }
-          } catch (ClassCastException e) {
-
-            output.append(field.getName());
-
-            String annotation = activeAnnotations.get(field.getName());
-            if (annotation != null && annotation.matches("(.*)Nullable;")) {
-              output.append("?");
-            }
-
-            output.append(": ");
-            output.append(getTSType(field.getType()));
-          }
-
-          if (i + 1 < fields.length)
-            output.append("; ");
-          else
-            output.append(";");
+          var field = fields[i];
+          if (isStatic(field.getModifiers())) continue;
+          processField(field, output, activeAnnotations);
         }
       } catch (Exception e) {
-        logger.warning(
-          e.getMessage() +
-            System.lineSeparator() +
-            Arrays.toString(e.getStackTrace())
-              .substring(1).replace(", ", System.lineSeparator())
-        );
+        logger.log(SEVERE, "Failed to convert " + clazz, e);
       }
 
+      if (output.charAt(output.length() - 1) == ' ') output.setLength(output.length() - 1);
       output.append("}");
       return output.toString();
     }
 
     return "";
+  }
+
+  private void processField(Field field, StringBuilder out, HashMap<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    var fieldBuffer = new StringBuilder();
+
+    var expectedFieldName = field.getName();
+    for (Annotation annotation : field.getDeclaredAnnotations()) {
+      String annotationName = annotation.annotationType().getSimpleName();
+      if (annotationName.equals("JsonIgnore"))
+        return;
+      else if (annotationName.equals("JsonProperty"))
+        expectedFieldName = (String) annotation.getClass().getMethod("value").invoke(annotation);
+    }
+
+    fieldBuffer.append(expectedFieldName);
+
+    if (!activeAnnotations.isEmpty())
+      for (String annotation : activeAnnotations.getOrDefault(field.getName(), new ArrayList<>()))
+        if (annotation.matches(".*Nullable;.*"))
+          fieldBuffer.append("?");
+
+    fieldBuffer.append(": ");
+
+    boolean isIterable = false;
+    var typeBuffer = new StringBuilder();
+    try {
+      var fieldType = field.getType();
+
+      if (field.getGenericType() instanceof ParameterizedType) {
+        var genericType = (ParameterizedType) field.getGenericType();
+        var parameterTypes = genericType.getActualTypeArguments();
+        isIterable = processGenericField(typeBuffer, fieldType, parameterTypes);
+      } else {
+        isIterable = fieldType.isArray();
+        typeBuffer.append(typeMapper.getTSType(isIterable ? fieldType.getComponentType() : fieldType));
+      }
+    } catch (Exception e) {
+      logger.log(SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + field.getDeclaringClass() + "`, defaulting to `any`", e);
+      typeBuffer = new StringBuilder("any");
+    }
+    out.append(fieldBuffer);
+    out.append(typeBuffer);
+    if (isIterable) out.append("[]");
+    out.append("; ");
+  }
+
+  private boolean processGenericField(StringBuilder typeBuffer, Class<?> fieldType, Type[] parameterTypes) {
+    var isIterable = false;
+    if (Map.class.isAssignableFrom(fieldType)) {
+      typeBuffer.append(readAsMapGeneric(parameterTypes));
+    } else if (Iterable.class.isAssignableFrom(fieldType)) {
+      isIterable = true;
+      for (Type parameterType : parameterTypes) {
+        convertIterableGenerics(parameterType, typeBuffer);
+      }
+    } else {
+      typeBuffer.append(typeMapper.getTSType(fieldType));
+      typeBuffer.append("<");
+
+      for (int j = 0; j < parameterTypes.length; j++) {
+        if (j > 0) typeBuffer.append(",");
+        typeBuffer.append(ALPHABET[j % ALPHABET.length]);
+      }
+      typeBuffer.append(">");
+    }
+    return isIterable;
+  }
+
+  private void convertIterableGenerics(Type type, StringBuilder typeBuffer) throws ClassCastException {
+    if (type instanceof WildcardType) {
+      var wildcardType = (WildcardType) type;
+      var bounds = wildcardType.getLowerBounds();
+      if (bounds.length == 0) bounds = wildcardType.getUpperBounds();
+      if (bounds[0] instanceof ParameterizedType) convertIterableGenerics(bounds[0], typeBuffer);
+      else typeBuffer.append(typeMapper.getTSType((Class<?>) bounds[0]));
+    } else if (type instanceof ParameterizedType) {
+      var parameterizedType = (ParameterizedType) type;
+      var elementType = (Class<?>) parameterizedType.getRawType();
+      if (Iterable.class.isAssignableFrom(elementType))
+        typeBuffer.append(typeMapper.getTSType((Class<?>) parameterizedType.getActualTypeArguments()[0])).append("[]");
+      else
+        typeBuffer.append(typeMapper.getTSType(elementType));
+    } else {
+      typeBuffer.append(typeMapper.getTSType((Class<?>) type));
+    }
+  }
+
+  private String readAsMapGeneric(Type[] parameterTypes) {
+    var output = new StringBuilder();
+
+    output.append("{");
+    for (int j = 0; j < parameterTypes.length; j = +2) {
+      var value = parameterTypes[j + 1];
+      output.append("[key: string]: ");
+      if (value instanceof ParameterizedType)
+        output.append(readAsMapGeneric(((ParameterizedType) value).getActualTypeArguments()));
+      else
+        output.append(typeMapper.getTSType((Class<?>) value));
+    }
+    output.append("}");
+
+    return output.toString();
+  }
+}
+
+class ClassAdapter extends ClassVisitor {
+  Map<String, List<String>> activeAnnotations;
+
+  public ClassAdapter(Map<String, List<String>> activeAnnotations) {
+    super(ASM9);
+    this.activeAnnotations = activeAnnotations;
+  }
+
+  @Override public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+    return new FieldAnnotationAdapter(activeAnnotations.computeIfAbsent(name, k -> new ArrayList<>()));
+  }
+}
+
+class FieldAnnotationAdapter extends FieldVisitor {
+  List<String> activeAnnotations;
+
+  public FieldAnnotationAdapter(List<String> activeAnnotations) {
+    super(ASM9);
+    this.activeAnnotations = activeAnnotations;
+  }
+
+  @Override public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+    activeAnnotations.add(descriptor);
+    return super.visitAnnotation(descriptor, visible);
+  }
+}
+
+class ClassAnnotationReader extends ClassReader {
+  public ClassAnnotationReader(InputStream in) throws IOException {
+    super(in);
   }
 }

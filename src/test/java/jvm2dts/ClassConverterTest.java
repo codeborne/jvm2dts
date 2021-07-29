@@ -1,17 +1,22 @@
 package jvm2dts;
 
-import org.jetbrains.annotations.Nullable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jvm2dts.types.ClassConverter;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ClassConverterTest {
-  private final ClassConverter converter = new ClassConverter();
+  private final ClassConverter converter = new ClassConverter(new TypeMapper(emptyMap()));
 
   @Test
   void modelClass() {
-    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole;}");
+    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole; listOfLong: number[]; listOfList: string[][];}");
   }
 
   @Test
@@ -36,6 +41,13 @@ class ClassConverterTest {
       "aDouble?: number;}");
   }
 
+  @Test
+  void jsonProperty() {
+    assertThat(converter.convert(JsonPropertyObject.class)).isEqualTo("interface JsonPropertyObject {" +
+      "namedProperty: boolean; " +
+      "literalObject: any;}");
+  }
+
   @SuppressWarnings("unused")
   static class NumbersPrimitive {
     byte aByte;
@@ -55,6 +67,13 @@ class ClassConverterTest {
     @Nullable Float aFloat;
     @Nullable Double aDouble;
   }
+
+  @SuppressWarnings("unused")
+  static class JsonPropertyObject {
+    @JsonProperty("namedProperty") Boolean notWhatIWant;
+    Object literalObject = new Object();
+    @JsonIgnore String ignore;
+  }
 }
 
 @SuppressWarnings("unused")
@@ -62,6 +81,8 @@ class Model {
   String name;
   int age;
   Role role;
+  List<Long> listOfLong;
+  List<List<String>> listOfList;
 
   enum Role {
     HELLO, WORLD
