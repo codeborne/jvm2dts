@@ -111,6 +111,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    jvmArgs = ["--illegal-access=permit"]
 }
 
 jar {

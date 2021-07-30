@@ -58,6 +58,8 @@ tasks.register("generateTSTypes") {
 }
 ```
 
+Note: Java 16+ will probably require `--illegal-access=permit` in order to access JDK built-in ASM.
+
 ### Recursive directory class loading
 
 While `jvm2dts` can **recursively walk through directories** with `-classesDir` parameter, this is not 

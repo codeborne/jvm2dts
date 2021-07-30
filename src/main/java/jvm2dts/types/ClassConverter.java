@@ -1,15 +1,13 @@
 package jvm2dts.types;
 
-import jdk.internal.org.objectweb.asm.AnnotationVisitor;
-import jdk.internal.org.objectweb.asm.ClassReader;
-import jdk.internal.org.objectweb.asm.ClassVisitor;
-import jdk.internal.org.objectweb.asm.FieldVisitor;
+import jdk.internal.org.objectweb.asm.*;
 import jvm2dts.ToTypeScriptConverter;
 import jvm2dts.TypeMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,12 +16,21 @@ import java.util.Map;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.logging.Level.SEVERE;
-import static jdk.internal.org.objectweb.asm.Opcodes.ASM6;
+import static jvm2dts.types.ClassConverter.ASM_VERSION;
 
 // TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
+  static final int ASM_VERSION = detectAsmVersion();
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
   TypeMapper typeMapper;
+
+  static int detectAsmVersion() {
+    try {
+      return (int) Opcodes.class.getField("ASM7").get(null); // Java 16
+    } catch (Exception e) {
+      return Opcodes.ASM6; // Java 11
+    }
+  }
 
   public ClassConverter(TypeMapper typeMapper) {
     this.typeMapper = typeMapper;
@@ -37,7 +44,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     if (fields.length > 0) {
       try {
         var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-        new ClassAnnotationReader(in).accept(new ClassAdapter(activeAnnotations), 0);
+        new ClassAnnotationReader(in).accept(new ClassAdapter(activeAnnotations), ClassReader.SKIP_CODE);
 
         for (int i = 0; i < fields.length; i++) {
           var field = fields[i];
@@ -163,7 +170,7 @@ class ClassAdapter extends ClassVisitor {
   Map<String, List<String>> activeAnnotations;
 
   public ClassAdapter(Map<String, List<String>> activeAnnotations) {
-    super(ASM6);
+    super(ASM_VERSION);
     this.activeAnnotations = activeAnnotations;
   }
 
@@ -176,7 +183,7 @@ class FieldAnnotationAdapter extends FieldVisitor {
   List<String> activeAnnotations;
 
   public FieldAnnotationAdapter(List<String> activeAnnotations) {
-    super(ASM6);
+    super(ASM_VERSION);
     this.activeAnnotations = activeAnnotations;
   }
 
