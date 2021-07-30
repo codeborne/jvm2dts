@@ -1,11 +1,11 @@
 package jvm2dts.types;
 
+import jdk.internal.org.objectweb.asm.AnnotationVisitor;
+import jdk.internal.org.objectweb.asm.ClassReader;
+import jdk.internal.org.objectweb.asm.ClassVisitor;
+import jdk.internal.org.objectweb.asm.FieldVisitor;
 import jvm2dts.ToTypeScriptConverter;
 import jvm2dts.TypeMapper;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +18,7 @@ import java.util.Map;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.logging.Level.SEVERE;
-import static org.objectweb.asm.Opcodes.ASM9;
+import static jdk.internal.org.objectweb.asm.Opcodes.ASM6;
 
 // TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
@@ -163,7 +163,7 @@ class ClassAdapter extends ClassVisitor {
   Map<String, List<String>> activeAnnotations;
 
   public ClassAdapter(Map<String, List<String>> activeAnnotations) {
-    super(ASM9);
+    super(ASM6);
     this.activeAnnotations = activeAnnotations;
   }
 
@@ -176,7 +176,7 @@ class FieldAnnotationAdapter extends FieldVisitor {
   List<String> activeAnnotations;
 
   public FieldAnnotationAdapter(List<String> activeAnnotations) {
-    super(ASM9);
+    super(ASM6);
     this.activeAnnotations = activeAnnotations;
   }
 

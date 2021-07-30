@@ -5,9 +5,13 @@ plugins {
 }
 
 group 'com.codeborne'
-version '1.5.1'
+version '1.5.2'
 
 sourceCompatibility = targetCompatibility = 11
+
+compileJava {
+    options.compilerArgs.add('--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED')
+}
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
@@ -26,7 +30,6 @@ repositories {
 signing {
     sign publishing.publications
 }
-
 
 publishing {
     publications {
@@ -103,7 +106,6 @@ dependencies {
     testImplementation 'org.jetbrains:annotations:20.1.0'
     testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.1'
 
-    implementation 'org.ow2.asm:asm:9.0'
     implementation 'com.beust:jcommander:1.78'
 }
 

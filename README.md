@@ -34,7 +34,7 @@ val jvm2dts by configurations.creating
 
 // Required dependencies
 dependencies {
-  jvm2dts("com.codeborne:jvm2dts:1.5.1")
+  jvm2dts("com.codeborne:jvm2dts:1.5.2")
 }
 
 // Create the Gradle task to generate TypeScript interfaces and enums
@@ -86,7 +86,6 @@ into a ``*.ts`` file instead
 ### Nullability
 
 jvm2dts can read _Nullable_ annotations and will append ``?`` to the name of a variable.
-This is done using ASM, so the package may need to be updated once new versions of Java release.
 
 ### JsonProperty (from [com.fasterxml.jackson.core/jackson-annotations](https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations))
 
