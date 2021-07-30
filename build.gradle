@@ -13,6 +13,10 @@ compileJava {
     options.compilerArgs.add('--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED')
 }
 
+javadoc {
+    options.addStringOption('-add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED', '-quiet')
+}
+
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
     classifier = 'sources'
