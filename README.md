@@ -58,7 +58,7 @@ tasks.register("generateTSTypes") {
 }
 ```
 
-Note: Java 16+ will probably require `--illegal-access=permit` in order to access JDK built-in ASM.
+Note: Java 16+ requires `--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED` in order to access JDK built-in ASM.
 
 ### Recursive directory class loading
 
