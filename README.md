@@ -44,21 +44,20 @@ tasks.register("generateTSTypes") {
   doLast {
       val mainSource = sourceSets.main.get()
       project.file("api/types.ts").writeText(ByteArrayOutputStream().use { out ->
-      project.exec {
-        standardOutput = out
-        commandLine = """java -classpath ${(jvm2dts + sourceSets.main.get().runtimeClasspath).asPath}
-          jvm2dts.Main 
-          -exclude .*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*
-          -cast MyNumericClass=number
-          mypackage1 mypackage2 ...""".split("\\s+".toRegex())
-      }
+        project.javaexec {
+          standardOutput = out
+          mainClass.set("jvm2dts.Main")
+          jvmArgs = listOf("--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED") // Java 16+ needs this
+          classpath = jvm2dts + sourceSets.main.get().runtimeClasspath
+          args("-exclude", ".*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*", 
+               "-cast", "MyNumericClass=number",
+               "-classesDir", "${project.buildDir}/classes/kotlin/main")
+        }
       out.toString()
     })
   }
 }
 ```
-
-Note: Java 16+ requires `--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED` in order to access JDK built-in ASM.
 
 ### Recursive directory class loading
 
