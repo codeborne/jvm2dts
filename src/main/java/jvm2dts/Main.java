@@ -96,7 +96,6 @@ public class Main {
     Converter converter = new Converter(new TypeMapper(customTypes));
 
     for (String packageName : packages) {
-
       URL packageUrl = classLoader.getResource(packageName.replace('.', '/'));
       if (packageUrl == null) {
         err.println("Cannot load " + packageName + " using ClassLoader, is it missing from classpath?");

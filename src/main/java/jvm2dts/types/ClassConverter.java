@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.logging.Level.SEVERE;
+import static jvm2dts.NameConverter.convertName;
 import static jvm2dts.types.ClassConverter.ASM_VERSION;
 
 // TODO: seems like having a builder will be more beneficial - allowing more args
@@ -45,9 +46,7 @@ public class ClassConverter implements ToTypeScriptConverter {
       try {
         var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
         new ClassAnnotationReader(in).accept(new ClassAdapter(activeAnnotations), ClassReader.SKIP_CODE);
-
-        for (int i = 0; i < fields.length; i++) {
-          var field = fields[i];
+        for (Field field : fields) {
           if (isStatic(field.getModifiers())) continue;
           processField(field, output, activeAnnotations);
         }
@@ -63,7 +62,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     return "";
   }
 
-  private void processField(Field field, StringBuilder out, HashMap<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  private void processField(Field field, StringBuilder out, Map<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
 
     var expectedFieldName = field.getName();
@@ -117,14 +116,17 @@ public class ClassConverter implements ToTypeScriptConverter {
         convertIterableGenerics(parameterType, typeBuffer);
       }
     } else {
-      typeBuffer.append(typeMapper.getTSType(fieldType));
-      typeBuffer.append("<");
-
-      for (int j = 0; j < parameterTypes.length; j++) {
-        if (j > 0) typeBuffer.append(",");
-        typeBuffer.append(ALPHABET[j % ALPHABET.length]);
+      String type = typeMapper.getSimpleTSType(fieldType);
+      if (type != null) typeBuffer.append(type);
+      else {
+        typeBuffer.append(convertName(fieldType));
+        typeBuffer.append("<");
+        for (int j = 0; j < parameterTypes.length; j++) {
+          if (j > 0) typeBuffer.append(",");
+          typeBuffer.append(ALPHABET[j % ALPHABET.length]);
+        }
+        typeBuffer.append(">");
       }
-      typeBuffer.append(">");
     }
     return isIterable;
   }

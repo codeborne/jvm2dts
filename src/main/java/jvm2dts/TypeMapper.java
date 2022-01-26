@@ -65,8 +65,13 @@ public class TypeMapper {
     map.putAll(customTypes);
   }
 
-  public String getTSType(Class<?> type) {
+  public String getSimpleTSType(Class<?> type) {
     if (type == Object.class) return "any";
-    return map.getOrDefault(type, map.getOrDefault(type.getSuperclass(), convertName(type)));
+    return map.getOrDefault(type, map.get(type.getSuperclass()));
+  }
+
+  public String getTSType(Class<?> type) {
+    String simple = getSimpleTSType(type);
+    return simple != null ? simple : convertName(type);
   }
 }
