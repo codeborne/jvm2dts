@@ -124,7 +124,7 @@ public class Main {
           .sorted().forEach(className -> {
             try {
               Class<?> clazz = Class.forName(className);
-              if (kotlinDataOnly && !isKotlinData(clazz)) return;
+              if (kotlinDataOnly && !isKotlinData(clazz) && !clazz.isEnum()) return;
               var converted = converter.convert(clazz);
               if (converted != null) {
                 out.print("// ");
