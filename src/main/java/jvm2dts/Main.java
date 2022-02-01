@@ -4,11 +4,11 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static java.lang.System.*;
 import static java.util.Arrays.stream;
@@ -38,10 +38,8 @@ public class Main {
   }
 
   public static void main(String[] args) throws ClassNotFoundException {
-    Args parsedArgs = new Args();
-    JCommander jc = JCommander.newBuilder()
-      .addObject(parsedArgs)
-      .build();
+    var parsedArgs = new Args();
+    var jc = JCommander.newBuilder().addObject(parsedArgs).build();
     jc.parse(args);
     if (args.length < 1 || parsedArgs.help) {
       err.println("Example: java -classpath path/to/package " + Main.class.getName() + " -exclude MyRegExp -cast MyClass=number,AnotherClass=string package1 package2 package3");
@@ -49,12 +47,12 @@ public class Main {
       exit(0);
     }
 
-    List<String> packages = parsedArgs.packages;
-    Path basePath = Paths.get(parsedArgs.classesDir);
-    Set<String> excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
+    var packages = parsedArgs.packages;
+    var basePath = Paths.get(parsedArgs.classesDir);
+    var excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
             stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
 
-    ClassLoader classLoader = Main.class.getClassLoader();
+    var classLoader = Main.class.getClassLoader();
     if (packages.isEmpty() && parsedArgs.classesDir != null) {
       try {
         Files.walk(basePath)
@@ -86,17 +84,17 @@ public class Main {
       exit(1);
     }
 
-    final Map<Class<?>, String> customTypes = new HashMap<>();
+    var customTypes = new HashMap<Class<?>, String>();
     if (parsedArgs.cast != null) {
-      String[] kvpairs = parsedArgs.cast.split(",");
-      for (String pair : kvpairs) {
+      var kvpairs = parsedArgs.cast.split(",");
+      for (var pair : kvpairs) {
         customTypes.put(Class.forName(pair.split("=")[0]), pair.split("=")[1]);
       }
     }
-    Converter converter = new Converter(new TypeMapper(customTypes));
+    var converter = new Converter(new TypeMapper(customTypes));
 
-    for (String packageName : packages) {
-      URL packageUrl = classLoader.getResource(packageName.replace('.', '/'));
+    for (var packageName : packages) {
+      var packageUrl = classLoader.getResource(packageName.replace('.', '/'));
       if (packageUrl == null) {
         err.println("Cannot load " + packageName + " using ClassLoader, is it missing from classpath?");
         continue;
@@ -104,14 +102,14 @@ public class Main {
 
       if (packageUrl.getProtocol().equals("file")) {
         try {
-          final String exclude = parsedArgs.excludeRegex;
+          var exclude = parsedArgs.excludeRegex;
 
           Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile).filter(path -> {
-            String pathString = path.getFileName().toString();
+            var pathString = path.getFileName().toString();
             if (pathString.endsWith(".class")) {
               if (exclude == null) return true;
 
-              String classString = pathString.substring(0, pathString.lastIndexOf('.'));
+              var classString = pathString.substring(0, pathString.lastIndexOf('.'));
               if (classString.matches(exclude)) return false;
               return !classString.matches(".*\\$\\d+$");
             }
@@ -120,7 +118,7 @@ public class Main {
           .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
           .sorted().forEach(className -> {
             try {
-              String converted = converter.convert(Class.forName(className));
+              var converted = converter.convert(Class.forName(className));
               if (converted != null) {
                 out.print("// ");
                 out.println(className);
@@ -139,6 +137,5 @@ public class Main {
         exit(3);
       }
     }
-    exit(0);
   }
 }
