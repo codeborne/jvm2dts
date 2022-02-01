@@ -23,10 +23,10 @@ class ClassConverterTest {
       "role: ModelRole; " +
       "listOfLong: number[]; " +
       "listOfList: string[][]; " +
-      "details: Details; " +
+      "details: ModelDetails; " +
       "id: string;}");
 
-    assertThat(converter.convert(Model.Details.class)).isEqualTo("interface Details {" +
+    assertThat(converter.convert(Model.Details.class)).isEqualTo("interface ModelDetails {" +
       "stuff: string;}");
   }
 
@@ -60,35 +60,35 @@ class ClassConverterTest {
       "namedProperty: boolean; " +
       "literalObject: any;}");
   }
+}
 
-  @SuppressWarnings("unused")
-  interface Primitives {
-    byte getAByte();
-    short getAShort();
-    int getInt();
-    long getLong();
-    float getFloat();
-    double getDouble();
-    boolean isBoolean();
-  }
+@SuppressWarnings("unused")
+interface Primitives {
+  byte getAByte();
+  short getAShort();
+  int getInt();
+  long getLong();
+  float getFloat();
+  double getDouble();
+  boolean isBoolean();
+}
 
-  @SuppressWarnings("unused")
-  interface WrapperTypes {
-    Byte getAByte();
-    Short getAShort();
-    Integer getInteger();
-    Long getLong();
-    Boolean isBoolean();
-    @Nullable Float getFloat();
-    @Nullable Double getDouble();
-  }
+@SuppressWarnings("unused")
+interface WrapperTypes {
+  Byte getAByte();
+  Short getAShort();
+  Integer getInteger();
+  Long getLong();
+  Boolean isBoolean();
+  @Nullable Float getFloat();
+  @Nullable Double getDouble();
+}
 
-  @SuppressWarnings("unused")
-  interface JsonPropertyObject {
-    @JsonProperty("namedProperty") Boolean getNotWhatIWant();
-    Object getLiteralObject();
-    @JsonIgnore String getIgnore();
-  }
+@SuppressWarnings("unused")
+interface JsonPropertyObject {
+  @JsonProperty("namedProperty") Boolean getNotWhatIWant();
+  Object getLiteralObject();
+  @JsonIgnore String getIgnore();
 }
 
 @SuppressWarnings("unused")

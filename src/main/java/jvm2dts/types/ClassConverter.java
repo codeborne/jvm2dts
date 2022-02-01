@@ -17,7 +17,6 @@ import static java.util.logging.Level.SEVERE;
 import static jvm2dts.NameConverter.convertName;
 import static jvm2dts.types.ClassConverter.ASM_VERSION;
 
-// TODO: seems like having a builder will be more beneficial - allowing more args
 public class ClassConverter implements ToTypeScriptConverter {
   static final int ASM_VERSION = detectAsmVersion();
   static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
@@ -36,7 +35,7 @@ public class ClassConverter implements ToTypeScriptConverter {
   }
 
   @Override public String convert(Class<?> clazz) {
-    var output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
+    var output = new StringBuilder("interface ").append(convertName(clazz)).append(" {");
     var classAnnotations = new HashMap<String, List<String>>();
 
     var methods = clazz.getMethods();
