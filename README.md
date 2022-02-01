@@ -32,10 +32,11 @@ Converted **TypeScript interfaces output from stdout** and all **errors are thro
 
 ### Using in Gradle (Kotlin DSL)
 
+Note: unreleased versions can also be obtained using https://jitpack.io/#codeborne/jvm2dts
+
 ```kotlin
 val jvm2dts by configurations.creating
 
-// Required dependencies
 dependencies {
   jvm2dts("com.codeborne:jvm2dts:1.5.2")
 }
