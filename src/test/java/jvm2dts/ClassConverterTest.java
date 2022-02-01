@@ -67,6 +67,12 @@ class ClassConverterTest {
       "id: string; " +
       "hello: string;}");
   }
+
+  @Test
+  void emptyTypes() {
+    assertThat(converter.convert(Empty.class)).isNull();
+    assertThat(converter.convert(OnlyPrivate.class)).isNull();
+  }
 }
 
 @SuppressWarnings("unused")
@@ -103,6 +109,11 @@ class RealClass implements Base {
   void method() {}
   @Override public UUID getId() { return null; }
   private int getPrivate() { return 0; }
+}
+
+interface Empty {}
+class OnlyPrivate {
+  private String getHello() { return ""; }
 }
 
 @SuppressWarnings("unused")

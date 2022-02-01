@@ -121,7 +121,7 @@ public class Main {
           .sorted().forEach(className -> {
             try {
               String converted = converter.convert(Class.forName(className));
-              if (!converted.isEmpty()) {
+              if (converted != null) {
                 out.print("// ");
                 out.println(className);
                 out.print("export ");

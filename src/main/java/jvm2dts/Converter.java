@@ -13,7 +13,7 @@ public class Converter implements ToTypeScriptConverter {
 
   public String convert(Class<?> clazz) {
     if (clazz.isAnnotation() || clazz.getSimpleName().isEmpty())
-      return "";
+      return null;
     else if (clazz.isEnum())
       return enumConverter.convert(clazz);
     else

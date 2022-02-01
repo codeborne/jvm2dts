@@ -39,24 +39,21 @@ public class ClassConverter implements ToTypeScriptConverter {
     var classAnnotations = new HashMap<String, List<String>>();
 
     var methods = clazz.getMethods();
-    if (methods.length > 0) {
-      try {
-        var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-        new ClassAnnotationReader(in).accept(new ClassAnnotationExtractor(classAnnotations), ClassReader.SKIP_CODE);
-        for (Method method : methods) {
-          if (isStatic(method.getModifiers()) || method.getParameterCount() > 0) continue;
-          processProperty(method, output, classAnnotations);
-        }
-      } catch (Exception e) {
-        logger.log(SEVERE, "Failed to convert " + clazz, e);
+    try {
+      var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
+      new ClassAnnotationReader(in).accept(new ClassAnnotationExtractor(classAnnotations), ClassReader.SKIP_CODE);
+      for (Method method : methods) {
+        if (isStatic(method.getModifiers()) || method.getParameterCount() > 0) continue;
+        processProperty(method, output, classAnnotations);
       }
-
-      if (output.charAt(output.length() - 1) == ' ') output.setLength(output.length() - 1);
-      output.append("}");
-      return output.toString();
+    } catch (Exception e) {
+      logger.log(SEVERE, "Failed to convert " + clazz, e);
     }
 
-    return "";
+    if (output.charAt(output.length() - 1) == ' ') output.setLength(output.length() - 1);
+    output.append("}");
+    var result = output.toString();
+    return result.endsWith("{}") ? null : result;
   }
 
   private void processProperty(Method method, StringBuilder out, Map<String, List<String>> classAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
