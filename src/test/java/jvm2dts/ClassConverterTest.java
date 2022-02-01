@@ -23,7 +23,11 @@ class ClassConverterTest {
       "role: ModelRole; " +
       "listOfLong: number[]; " +
       "listOfList: string[][]; " +
+      "details: Details; " +
       "id: string;}");
+
+    assertThat(converter.convert(Model.Details.class)).isEqualTo("interface Details {" +
+      "stuff: string;}");
   }
 
   @Test
@@ -94,9 +98,14 @@ interface Model extends Base {
   Role getRole();
   List<Long> getListOfLong();
   List<List<String>> getListOfList();
+  Details getDetails();
 
   enum Role {
     HELLO, WORLD
+  }
+
+  interface Details {
+    String getStuff();
   }
 }
 
