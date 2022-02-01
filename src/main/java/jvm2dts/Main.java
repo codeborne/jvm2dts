@@ -147,6 +147,7 @@ public class Main {
   }
 
   private static boolean isKotlinData(Class<?> clazz) {
-    return isFinal(clazz.getModifiers()) && stream(clazz.getDeclaredMethods()).anyMatch(m -> m.getName().equals("copy"));
+    return isFinal(clazz.getModifiers()) && stream(clazz.getDeclaredMethods()).anyMatch(m ->
+      m.getName().equals("copy") || m.getName().startsWith("copy-"));
   }
 }
