@@ -13,17 +13,17 @@ public class ConverterTest {
   @Test
   void collections() {
     assertThat(converter.convert(Collections.class)).isEqualTo("interface Collections {" +
+      "rawType: ArrayList; " +
+      "map: {[key: string]: number}; " +
       "roles: ConverterTestRole[]; " +
       "dates: Date|string[]; " +
       "ids: string[]; " +
-      "map: {[key: string]: number}; " +
       "mapInMap: {[key: string]: {[key: string]: number}}; " +
       "extendedGeneric: SingleGeneric<T>; " +
       "superGeneric: SingleGeneric<T>; " +
       "generic: MultiGeneric<T,U,V>; " +
       "superGenericList: ConverterTestRole[]; " +
-      "genericRecursiveList: SingleGeneric[]; " +
-      "rawType: ArrayList;" +
+      "genericRecursiveList: SingleGeneric[];" +
       "}");
   }
 
@@ -31,21 +31,20 @@ public class ConverterTest {
     ADMIN, USER
   }
 
-  static class Collections {
-    Role[] roles;
-    Date[] dates;
-    List<UUID> ids;
-    Map<String, Integer> map;
-    Map<String, Map<String, Integer>> mapInMap;
-    SingleGeneric<? extends Role> extendedGeneric;
-    SingleGeneric<? super Role> superGeneric;
-    MultiGeneric<?, ?, ?> generic;
-    List<? super Role> superGenericList;
-    List<SingleGeneric<?>> genericRecursiveList;
-    @SuppressWarnings("rawtypes") ArrayList rawType;
+  interface Collections {
+    Role[] getRoles();
+    Date[] getDates();
+    List<UUID> getIds();
+    Map<String, Integer> getMap();
+    Map<String, Map<String, Integer>> getMapInMap();
+    SingleGeneric<? extends Role> getExtendedGeneric();
+    SingleGeneric<? super Role> getSuperGeneric();
+    MultiGeneric<?, ?, ?> getGeneric();
+    List<? super Role> getSuperGenericList();
+    List<SingleGeneric<?>> getGenericRecursiveList();
+    @SuppressWarnings("rawtypes") ArrayList getRawType();
 
-    static boolean doNotGenerateStatics = true;
-    static Date unwantedDate = new Date();
+    static boolean getDoNotGenerateStatics() { return false; }
   }
 
   static class MultiGeneric<T, U, V> {}

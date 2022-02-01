@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,29 +17,37 @@ class ClassConverterTest {
 
   @Test
   void modelClass() {
-    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {name: string; age: number; role: ModelRole; listOfLong: number[]; listOfList: string[][];}");
+    assertThat(converter.convert(Model.class)).isEqualTo("interface Model {" +
+      "name: string; " +
+      "age: number; " +
+      "role: ModelRole; " +
+      "listOfLong: number[]; " +
+      "listOfList: string[][]; " +
+      "id: string;}");
   }
 
   @Test
-  void primitiveNumbers() {
-    assertThat(converter.convert(NumbersPrimitive.class)).isEqualTo("interface NumbersPrimitive {" +
+  void primitiveTypes() {
+    assertThat(converter.convert(Primitives.class)).isEqualTo("interface Primitives {" +
+      "int: number; " +
+      "long: number; " +
+      "float: number; " +
+      "double: number; " +
       "aByte: number; " +
       "aShort: number; " +
-      "anInt: number; " +
-      "aLong: number; " +
-      "aFloat: number; " +
-      "aDouble: number;}");
+      "boolean: boolean;}");
   }
 
   @Test
-  void objectNumbers() {
-    assertThat(converter.convert(NumbersObjects.class)).isEqualTo("interface NumbersObjects {" +
+  void wrapperTypes() {
+    assertThat(converter.convert(WrapperTypes.class)).isEqualTo("interface WrapperTypes {" +
+      "long: number; " +
+      "float?: number; " +
+      "double?: number; " +
+      "integer: number; " +
       "aByte: number; " +
       "aShort: number; " +
-      "anInteger: number; " +
-      "aLong: number; " +
-      "aFloat?: number; " +
-      "aDouble?: number;}");
+      "boolean: boolean;}");
   }
 
   @Test
@@ -49,42 +58,48 @@ class ClassConverterTest {
   }
 
   @SuppressWarnings("unused")
-  static class NumbersPrimitive {
-    byte aByte;
-    short aShort;
-    int anInt;
-    long aLong;
-    float aFloat;
-    double aDouble;
+  interface Primitives {
+    byte getAByte();
+    short getAShort();
+    int getInt();
+    long getLong();
+    float getFloat();
+    double getDouble();
+    boolean isBoolean();
   }
 
   @SuppressWarnings("unused")
-  static class NumbersObjects {
-    Byte aByte;
-    Short aShort;
-    Integer anInteger;
-    Long aLong;
-    @Nullable Float aFloat;
-    @Nullable Double aDouble;
+  interface WrapperTypes {
+    Byte getAByte();
+    Short getAShort();
+    Integer getInteger();
+    Long getLong();
+    Boolean isBoolean();
+    @Nullable Float getFloat();
+    @Nullable Double getDouble();
   }
 
   @SuppressWarnings("unused")
-  static class JsonPropertyObject {
-    @JsonProperty("namedProperty") Boolean notWhatIWant;
-    Object literalObject = new Object();
-    @JsonIgnore String ignore;
+  interface JsonPropertyObject {
+    @JsonProperty("namedProperty") Boolean getNotWhatIWant();
+    Object getLiteralObject();
+    @JsonIgnore String getIgnore();
   }
 }
 
 @SuppressWarnings("unused")
-class Model {
-  String name;
-  int age;
-  Role role;
-  List<Long> listOfLong;
-  List<List<String>> listOfList;
+interface Model extends Base {
+  String getName();
+  int getAge();
+  Role getRole();
+  List<Long> getListOfLong();
+  List<List<String>> getListOfList();
 
   enum Role {
     HELLO, WORLD
   }
+}
+
+interface Base {
+  UUID getId();
 }

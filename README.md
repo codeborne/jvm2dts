@@ -3,10 +3,13 @@
 Generates TypeScript definitions (d.ts) for Java/Kotlin model classes using reflection/asm 
 that can be used for client-side type checking of API calls and responses.
 
+All public getters are read by default, in a similar way to Jackson.
+Works with Java/Lombok/Kotlin data classes. Java records are not yet supported.
+
 ## Usage
 
 Using `jvm2dts` requires that you include class paths of both the target project and `jvm2dts` itself. 
-Java version must be **at least** 11
+Java version must be **at least 11**
 
 ```
 Example: java -classpath path/to/package jvm2dts.Main -exclude MyRegExp -cast MyClass=number,AnotherClass=string package1 package2 package3
@@ -91,9 +94,8 @@ jvm2dts can read _Nullable_ annotations and will append ``?`` to the name of a v
 ### JsonProperty (from [com.fasterxml.jackson.core/jackson-annotations](https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations))
 
 `jvm2dts` can read _JsonProperty_ annotations and uses reflection to obtain the `value()`
-- If using Kotlin, the annotations should **target the field** (`@field:JsonProperty()`) to be read by `jvm2dts`
 
-Similarly, fields annotated with _JsonIgnore_ will be omitted.
+Similarly, getters annotated with _JsonIgnore_ will be omitted.
 
 # Releasing a new version to Maven Central
 

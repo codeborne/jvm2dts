@@ -9,12 +9,10 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.reflect.Modifier.isStatic;
+import static java.util.Collections.emptyList;
 import static java.util.logging.Level.SEVERE;
 import static jvm2dts.NameConverter.convertName;
 import static jvm2dts.types.ClassConverter.ASM_VERSION;
@@ -39,16 +37,16 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   @Override public String convert(Class<?> clazz) {
     var output = new StringBuilder("interface ").append(clazz.getSimpleName()).append(" {");
-    var activeAnnotations = new HashMap<String, List<String>>();
+    var classAnnotations = new HashMap<String, List<String>>();
 
-    var fields = clazz.getDeclaredFields();
-    if (fields.length > 0) {
+    var methods = clazz.getMethods();
+    if (methods.length > 0) {
       try {
         var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-        new ClassAnnotationReader(in).accept(new ClassAdapter(activeAnnotations), ClassReader.SKIP_CODE);
-        for (Field field : fields) {
-          if (isStatic(field.getModifiers())) continue;
-          processField(field, output, activeAnnotations);
+        new ClassAnnotationReader(in).accept(new ClassAnnotationExtractor(classAnnotations), ClassReader.SKIP_CODE);
+        for (Method method : methods) {
+          if (isStatic(method.getModifiers()) || method.getParameterCount() > 0) continue;
+          processProperty(method, output, classAnnotations);
         }
       } catch (Exception e) {
         logger.log(SEVERE, "Failed to convert " + clazz, e);
@@ -62,23 +60,26 @@ public class ClassConverter implements ToTypeScriptConverter {
     return "";
   }
 
-  private void processField(Field field, StringBuilder out, Map<String, List<String>> activeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  private void processProperty(Method method, StringBuilder out, Map<String, List<String>> classAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
 
-    var expectedFieldName = field.getName();
-    for (Annotation annotation : field.getDeclaredAnnotations()) {
+    var name = method.getName();
+    var propertyName = name.startsWith("get") ? name.substring(3, 4).toLowerCase() + name.substring(4) :
+                              name.startsWith("is") ? name.substring(2, 3).toLowerCase() + name.substring(3) : null;
+    if (propertyName == null) return;
+
+    for (Annotation annotation : method.getDeclaredAnnotations()) {
       String annotationName = annotation.annotationType().getSimpleName();
-      if (annotationName.equals("JsonIgnore"))
-        return;
+      if (annotationName.equals("JsonIgnore")) return;
       else if (annotationName.equals("JsonProperty"))
-        expectedFieldName = (String) annotation.getClass().getMethod("value").invoke(annotation);
+        propertyName = (String) annotation.getClass().getMethod("value").invoke(annotation);
     }
 
-    fieldBuffer.append(expectedFieldName);
+    fieldBuffer.append(propertyName);
 
-    if (!activeAnnotations.isEmpty())
-      for (String annotation : activeAnnotations.getOrDefault(field.getName(), new ArrayList<>()))
-        if (annotation.matches(".*Nullable;.*"))
+    if (!classAnnotations.isEmpty())
+      for (String annotation : classAnnotations.getOrDefault(name, emptyList()))
+        if (annotation.contains("Nullable;"))
           fieldBuffer.append("?");
 
     fieldBuffer.append(": ");
@@ -86,18 +87,17 @@ public class ClassConverter implements ToTypeScriptConverter {
     boolean isIterable = false;
     var typeBuffer = new StringBuilder();
     try {
-      var fieldType = field.getType();
+      var type = method.getReturnType();
 
-      if (field.getGenericType() instanceof ParameterizedType) {
-        var genericType = (ParameterizedType) field.getGenericType();
-        var parameterTypes = genericType.getActualTypeArguments();
-        isIterable = processGenericField(typeBuffer, fieldType, parameterTypes);
+      if (method.getGenericReturnType() instanceof ParameterizedType) {
+        var parameterTypes = ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments();
+        isIterable = processGenericField(typeBuffer, type, parameterTypes);
       } else {
-        isIterable = fieldType.isArray();
-        typeBuffer.append(typeMapper.getTSType(isIterable ? fieldType.getComponentType() : fieldType));
+        isIterable = type.isArray();
+        typeBuffer.append(typeMapper.getTSType(isIterable ? type.getComponentType() : type));
       }
     } catch (Exception e) {
-      logger.log(SEVERE, "Failed to convert field type for `" + field.getName() + "` in `" + field.getDeclaringClass() + "`, defaulting to `any`", e);
+      logger.log(SEVERE, "Failed to convert property type for `" + name + "` in `" + method.getDeclaringClass() + "`, defaulting to `any`", e);
       typeBuffer = new StringBuilder("any");
     }
     out.append(fieldBuffer);
@@ -116,7 +116,7 @@ public class ClassConverter implements ToTypeScriptConverter {
         convertIterableGenerics(parameterType, typeBuffer);
       }
     } else {
-      String type = typeMapper.getSimpleTSType(fieldType);
+      var type = typeMapper.getSimpleTSType(fieldType);
       if (type != null) typeBuffer.append(type);
       else {
         typeBuffer.append(convertName(fieldType));
@@ -154,7 +154,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     var output = new StringBuilder();
 
     output.append("{");
-    for (int j = 0; j < parameterTypes.length; j = +2) {
+    for (int j = 0; j < parameterTypes.length; j = 2) {
       var value = parameterTypes[j + 1];
       output.append("[key: string]: ");
       if (value instanceof ParameterizedType)
@@ -168,30 +168,30 @@ public class ClassConverter implements ToTypeScriptConverter {
   }
 }
 
-class ClassAdapter extends ClassVisitor {
-  Map<String, List<String>> activeAnnotations;
+class ClassAnnotationExtractor extends ClassVisitor {
+  Map<String, List<String>> annotations;
 
-  public ClassAdapter(Map<String, List<String>> activeAnnotations) {
+  public ClassAnnotationExtractor(Map<String, List<String>> annotations) {
     super(ASM_VERSION);
-    this.activeAnnotations = activeAnnotations;
+    this.annotations = annotations;
   }
 
-  @Override public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-    return new FieldAnnotationAdapter(activeAnnotations.computeIfAbsent(name, k -> new ArrayList<>()));
+  @Override public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+    return new MethodAnnotationExtractor(annotations.computeIfAbsent(name, k -> new ArrayList<>()));
   }
 }
 
-class FieldAnnotationAdapter extends FieldVisitor {
-  List<String> activeAnnotations;
+class MethodAnnotationExtractor extends MethodVisitor {
+  List<String> annotations;
 
-  public FieldAnnotationAdapter(List<String> activeAnnotations) {
+  public MethodAnnotationExtractor(List<String> annotations) {
     super(ASM_VERSION);
-    this.activeAnnotations = activeAnnotations;
+    this.annotations = annotations;
   }
 
   @Override public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-    activeAnnotations.add(descriptor);
-    return super.visitAnnotation(descriptor, visible);
+    annotations.add(descriptor);
+    return null;
   }
 }
 
