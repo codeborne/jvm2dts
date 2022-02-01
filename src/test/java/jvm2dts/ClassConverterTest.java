@@ -60,6 +60,13 @@ class ClassConverterTest {
       "namedProperty: boolean; " +
       "literalObject: any;}");
   }
+
+  @Test
+  void realClass() {
+    assertThat(converter.convert(RealClass.class)).isEqualTo("interface RealClass {" +
+      "id: string; " +
+      "hello: string;}");
+  }
 }
 
 @SuppressWarnings("unused")
@@ -89,6 +96,13 @@ interface JsonPropertyObject {
   @JsonProperty("namedProperty") Boolean getNotWhatIWant();
   Object getLiteralObject();
   @JsonIgnore String getIgnore();
+}
+
+class RealClass implements Base {
+  public String getHello() { return ""; }
+  void method() {}
+  @Override public UUID getId() { return null; }
+  private int getPrivate() { return 0; }
 }
 
 @SuppressWarnings("unused")
