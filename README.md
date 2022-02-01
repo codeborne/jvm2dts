@@ -16,14 +16,17 @@ Example: java -classpath path/to/package jvm2dts.Main -exclude MyRegExp -cast My
 Usage: <main class> [options]
   Options:
     -c, -cast
-      Comma-separated key=value map to make classnames matching the key into specified value
+      Comma-separated key=value map to make classnames matching the key into 
+      specified value
     -classesDir
       Recursively look for classes from a location
+    -d, -data-only
+      Find only Kotlin data classes
+      Default: false
     -e, -exclude
       Excludes classes in the generation matching a Java RegExp pattern
     -excludeDir
       Comma-separated list to filter out package names when using classesDir
-    -h, -help
 ```
 
 [Read more about setting class paths in Java](https://docs.oracle.com/javase/11/docs/technotes/tools/windows/classpath.html)

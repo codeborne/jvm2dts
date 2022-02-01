@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static java.lang.System.*;
+import static java.lang.reflect.Modifier.isFinal;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
@@ -26,6 +27,9 @@ public class Main {
 
     @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching the key into specified value")
     private String cast;
+
+    @Parameter(names = {"-d", "-kotlin-data"}, description = "Process only Kotlin data classes")
+    private boolean kotlinDataOnly;
 
     @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")
     private String classesDir;
@@ -44,10 +48,11 @@ public class Main {
     if (args.length < 1 || parsedArgs.help) {
       err.println("Example: java -classpath path/to/package " + Main.class.getName() + " -exclude MyRegExp -cast MyClass=number,AnotherClass=string package1 package2 package3");
       jc.usage();
-      exit(0);
+      return;
     }
 
     var packages = parsedArgs.packages;
+    var kotlinDataOnly = parsedArgs.kotlinDataOnly;
     var basePath = Paths.get(parsedArgs.classesDir);
     var excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
             stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
@@ -118,7 +123,9 @@ public class Main {
           .map(path -> packageName + "." + path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.')))
           .sorted().forEach(className -> {
             try {
-              var converted = converter.convert(Class.forName(className));
+              Class<?> clazz = Class.forName(className);
+              if (kotlinDataOnly && !isKotlinData(clazz)) return;
+              var converted = converter.convert(clazz);
               if (converted != null) {
                 out.print("// ");
                 out.println(className);
@@ -137,5 +144,9 @@ public class Main {
         exit(3);
       }
     }
+  }
+
+  private static boolean isKotlinData(Class<?> clazz) {
+    return isFinal(clazz.getModifiers()) && stream(clazz.getDeclaredMethods()).anyMatch(m -> m.getName().equals("copy"));
   }
 }
