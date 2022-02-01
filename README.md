@@ -43,7 +43,7 @@ dependencies {
 
 // Create the Gradle task to generate TypeScript interfaces and enums
 // This buffers the standard output of the task into a stream, then gets written to a file
-tasks.register("generateTSTypes") { 
+tasks.register("types.ts") { 
   dependsOn("classes")
   doLast {
       val mainSource = sourceSets.main.get()
@@ -60,6 +60,10 @@ tasks.register("generateTSTypes") {
       out.toString()
     })
   }
+}
+
+tasks.withType<KotlinCompile> { // or JavaCompile
+  finalizedBy("types.ts")
 }
 ```
 
