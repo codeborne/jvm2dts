@@ -65,7 +65,10 @@ public class ClassConverter implements ToTypeScriptConverter {
     var name = method.getName();
     var propertyName = name.startsWith("get") ? name.substring(3, 4).toLowerCase() + name.substring(4) :
                               name.startsWith("is") ? name.substring(2, 3).toLowerCase() + name.substring(3) : null;
+
     if (propertyName == null || propertyName.equals("class")) return;
+    var dashPos = propertyName.indexOf('-');
+    if (dashPos > 0) propertyName = propertyName.substring(0, dashPos);
 
     for (Annotation annotation : method.getDeclaredAnnotations()) {
       String annotationName = annotation.annotationType().getSimpleName();
