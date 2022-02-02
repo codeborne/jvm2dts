@@ -129,6 +129,7 @@ public class Main {
         exit(3);
       }
     }
+    exit(0);
   }
 
   private static List<String> findPackages(Path basePath, Set<String> excludeDirs) throws IOException {
