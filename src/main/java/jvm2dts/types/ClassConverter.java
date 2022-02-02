@@ -41,7 +41,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     var methods = clazz.getMethods();
     try {
       var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-      new ClassAnnotationReader(in).accept(new ClassAnnotationExtractor(classAnnotations), ClassReader.SKIP_CODE);
+      new ClassReader(in).accept(new ClassAnnotationExtractor(classAnnotations), ClassReader.SKIP_CODE);
       for (Method method : methods) {
         if (isStatic(method.getModifiers()) || method.getParameterCount() > 0) continue;
         processProperty(method, output, classAnnotations);
@@ -191,11 +191,5 @@ class MethodAnnotationExtractor extends MethodVisitor {
   @Override public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
     annotations.add(descriptor);
     return null;
-  }
-}
-
-class ClassAnnotationReader extends ClassReader {
-  public ClassAnnotationReader(InputStream in) throws IOException {
-    super(in);
   }
 }
