@@ -33,25 +33,25 @@ class ClassConverterTest {
   @Test
   void primitiveTypes() {
     assertThat(converter.convert(Primitives.class)).isEqualTo("interface Primitives {" +
+      "aByte: number; " +
+      "aShort: number; " +
       "int: number; " +
       "long: number; " +
       "float: number; " +
       "double: number; " +
-      "aByte: number; " +
-      "aShort: number; " +
       "boolean: boolean;}");
   }
 
   @Test
   void wrapperTypes() {
     assertThat(converter.convert(WrapperTypes.class)).isEqualTo("interface WrapperTypes {" +
-      "long: number; " +
-      "float?: number; " +
-      "double?: number; " +
-      "integer: number; " +
       "aByte: number; " +
       "aShort: number; " +
-      "boolean: boolean;}");
+      "integer: number; " +
+      "long: number; " +
+      "boolean: boolean; " +
+      "float?: number; " +
+      "double?: number;}");
   }
 
   @Test
@@ -64,8 +64,8 @@ class ClassConverterTest {
   @Test
   void realClass() {
     assertThat(converter.convert(RealClass.class)).isEqualTo("interface RealClass {" +
-      "id: string; " +
-      "hello: string;}");
+      "hello: string; " +
+      "id: string;}");
   }
 
   @Test

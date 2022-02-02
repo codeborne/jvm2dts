@@ -10,12 +10,18 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.stream.Stream;
 
+import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.naturalOrder;
 import static java.util.logging.Level.SEVERE;
+import static java.util.stream.Collectors.toMap;
 import static jvm2dts.NameConverter.convertName;
 import static jvm2dts.types.ClassConverter.ASM_VERSION;
+import static jvm2dts.types.ClassConverter.isLikeGetter;
 
 public class ClassConverter implements ToTypeScriptConverter {
   static final int ASM_VERSION = detectAsmVersion();
@@ -36,15 +42,26 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   @Override public String convert(Class<?> clazz) {
     var output = new StringBuilder("interface ").append(convertName(clazz)).append(" {");
-    var classAnnotations = new HashMap<String, List<String>>();
+    var methodAnnotations = new LinkedHashMap<String, List<String>>();
 
-    var methods = clazz.getMethods();
     try {
       var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-      new ClassReader(in).accept(new ClassAnnotationExtractor(classAnnotations), ClassReader.SKIP_CODE);
-      for (Method method : methods) {
-        if (isStatic(method.getModifiers()) || method.getParameterCount() > 0) continue;
-        processProperty(method, output, classAnnotations);
+      new ClassReader(in).accept(new ClassAnnotationExtractor(methodAnnotations), ClassReader.SKIP_CODE);
+
+      var getters = stream(clazz.getMethods())
+        .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && isLikeGetter(m.getName()))
+        .collect(toMap(Method::getName, m -> m));
+
+      var methodNamesInOrder = new ArrayList<>(methodAnnotations.keySet());
+      methodNamesInOrder.retainAll(getters.keySet());
+
+      var superClassGetters = new ArrayList<>(getters.keySet());
+      superClassGetters.removeAll(methodNamesInOrder);
+      superClassGetters.sort(naturalOrder());
+      methodNamesInOrder.addAll(superClassGetters);
+
+      for (String name : methodNamesInOrder) {
+        processProperty(getters.get(name), output, methodAnnotations);
       }
     } catch (Exception e) {
       logger.log(SEVERE, "Failed to convert " + clazz, e);
@@ -56,6 +73,10 @@ public class ClassConverter implements ToTypeScriptConverter {
     return result.endsWith("{}") ? null : result;
   }
 
+  static boolean isLikeGetter(String methodName) {
+    return (methodName.startsWith("get") || methodName.startsWith("is")) && !methodName.equals("getClass");
+  }
+
   private void processProperty(Method method, StringBuilder out, Map<String, List<String>> classAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
 
@@ -63,7 +84,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     var propertyName = name.startsWith("get") ? name.substring(3, 4).toLowerCase() + name.substring(4) :
                               name.startsWith("is") ? name.substring(2, 3).toLowerCase() + name.substring(3) : null;
 
-    if (propertyName == null || propertyName.equals("class")) return;
+    if (propertyName == null) return;
     var dashPos = propertyName.indexOf('-');
     if (dashPos > 0) propertyName = propertyName.substring(0, dashPos);
 
@@ -176,6 +197,7 @@ class ClassAnnotationExtractor extends ClassVisitor {
   }
 
   @Override public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+    if (!isPublic(access) || !isLikeGetter(name)) return null;
     return new MethodAnnotationExtractor(annotations.computeIfAbsent(name, k -> new ArrayList<>()));
   }
 }
