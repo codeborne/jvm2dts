@@ -3,17 +3,22 @@ package jvm2dts;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.System.*;
 import static java.lang.reflect.Modifier.isFinal;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class Main {
@@ -41,7 +46,7 @@ public class Main {
     private boolean help;
   }
 
-  public static void main(String[] args) throws ClassNotFoundException {
+  public static void main(String[] args) throws ClassNotFoundException, IOException {
     var parsedArgs = new Args();
     var jc = JCommander.newBuilder().addObject(parsedArgs).build();
     jc.parse(args);
@@ -54,32 +59,12 @@ public class Main {
     var packages = parsedArgs.packages;
     var kotlinDataOnly = parsedArgs.kotlinDataOnly;
     var basePath = Paths.get(parsedArgs.classesDir);
-    var excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
-            stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
+    Set<String> excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
+      stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
 
     var classLoader = Main.class.getClassLoader();
     if (packages.isEmpty() && parsedArgs.classesDir != null) {
-      try {
-        Files.walk(basePath)
-          .sorted()
-          .filter(Files::isDirectory)
-          .filter(path -> !path.getFileName().toString().equals("META-INF"))
-          .filter(path -> !path.equals(basePath))
-          .filter(path -> !excludeDirs.contains(basePath.relativize(path).toString()))
-          .filter(path -> {
-            try {
-              return Files.list(path).anyMatch(Files::isRegularFile);
-            } catch (IOException ex) {
-              err.println("Failed to walk directory for files: " + path);
-              ex.printStackTrace();
-              return false;
-            }
-          })
-          .forEach(name -> packages.add(basePath.relativize(name).toString()));
-      } catch (IOException e) {
-        e.printStackTrace();
-        exit(2);
-      }
+      packages = findPackages(basePath, excludeDirs);
       err.println("Packages detected: " + packages);
     }
 
@@ -144,6 +129,17 @@ public class Main {
         exit(3);
       }
     }
+  }
+
+  private static List<String> findPackages(Path basePath, Set<String> excludeDirs) throws IOException {
+    return Files.walk(basePath)
+      .filter(Files::isDirectory)
+      .filter(path -> !path.getFileName().toString().equals("META-INF"))
+      .filter(path -> !path.equals(basePath))
+      .filter(path -> !excludeDirs.contains(basePath.relativize(path).toString()))
+      .sorted()
+      .map(name -> basePath.relativize(name).toString().replace(File.separatorChar, '.'))
+      .collect(toList());
   }
 
   private static boolean isKotlinData(Class<?> clazz) {
