@@ -5,6 +5,7 @@ import com.beust.jcommander.Parameter;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.System.*;
 import static java.lang.reflect.Modifier.isFinal;
@@ -94,7 +94,7 @@ public class Main {
         try {
           var exclude = parsedArgs.excludeRegex;
 
-          Files.walk(Paths.get(packageUrl.getPath())).filter(Files::isRegularFile).filter(path -> {
+          Files.walk(Paths.get(packageUrl.toURI())).filter(Files::isRegularFile).filter(path -> {
             var pathString = path.getFileName().toString();
             if (pathString.endsWith(".class")) {
               if (exclude == null) return true;
@@ -121,7 +121,7 @@ public class Main {
               err.println("// Failed to load: " + e);
             }
           });
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
           err.println("// Could not access package " + packageName + ": " + e);
         }
       } else {
