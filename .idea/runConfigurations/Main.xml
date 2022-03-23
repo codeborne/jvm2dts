@@ -2,8 +2,23 @@
   <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="ALTERNATIVE_JRE_PATH" value="15" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <classpathModifications>
+      <entry path="$PROJECT_DIR$/../paywerk/paywerk/build/classes/kotlin/main" />
+    </classpathModifications>
     <option name="MAIN_CLASS_NAME" value="jvm2dts.Main" />
     <module name="jvm2dts.main" />
+    <option name="PROGRAM_PARAMETERS" value="-classesDir $PROJECT_DIR$/../paywerk/paywerk/build/classes/kotlin/main" />
+    <option name="VM_PARAMETERS" value="--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED" />
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+      </ENTRIES>
+    </extension>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -33,30 +33,30 @@ public class TypeMapper {
     map.put(Currency.class, "string");
     map.put(Locale.class, "string");
 
-    map.put(Date.class, "Date|string");
-    map.put(LocalDate.class, "Date|string");
-    map.put(LocalTime.class, "Date|string");
-    map.put(LocalDateTime.class, "Date|string");
+    map.put(Date.class, "string");
+    map.put(LocalDate.class, "string");
+    map.put(LocalTime.class, "string");
+    map.put(LocalDateTime.class, "string");
 
-    map.put(Month.class, "Date|string");
-    map.put(MonthDay.class, "Date|string");
-    map.put(Year.class, "Date|string");
-    map.put(YearMonth.class, "Date|string");
+    map.put(Month.class, "string");
+    map.put(MonthDay.class, "string");
+    map.put(Year.class, "string");
+    map.put(YearMonth.class, "string");
     map.put(DayOfWeek.class, "string");
 
-    map.put(Instant.class, "Date|string");
+    map.put(Instant.class, "string");
     map.put(Clock.class, "string");
     map.put(Period.class, "string");
     map.put(Duration.class, "string");
 
-    map.put(ChronoLocalDate.class, "Date|string");
-    map.put(ChronoLocalDateTime.class, "Date|string");
+    map.put(ChronoLocalDate.class, "string");
+    map.put(ChronoLocalDateTime.class, "string");
     map.put(ChronoPeriod.class, "string");
 
-    map.put(OffsetDateTime.class, "Date|string");
-    map.put(OffsetTime.class, "Date|string");
+    map.put(OffsetDateTime.class, "string");
+    map.put(OffsetTime.class, "string");
 
-    map.put(ZonedDateTime.class, "Date|string");
+    map.put(ZonedDateTime.class, "string");
     map.put(ZoneId.class, "string");
     map.put(ZoneOffset.class, "string");
     map.put(ZoneOffsetTransition.class, "string");

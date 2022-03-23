@@ -14,7 +14,7 @@ public class ConverterTest {
   void collections() {
     assertThat(converter.convert(Collections.class)).isEqualTo("interface Collections {" +
       "roles: Role[]; " +
-      "dates: Date|string[]; " +
+      "dates: string[]; " +
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
       "mapInMap: {[key: string]: {[key: string]: number}}; " +

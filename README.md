@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-  jvm2dts("com.github.codeborne:jvm2dts:1.6.2")
+  jvm2dts("com.github.codeborne:jvm2dts:1.6.3")
 }
 
 tasks.register("types.ts") { 
