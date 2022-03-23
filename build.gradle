@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.codeborne'
-version '1.6.3'
+version '1.6.5'
 
 sourceCompatibility = targetCompatibility = 11
 
