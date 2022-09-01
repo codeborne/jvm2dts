@@ -33,7 +33,7 @@ public class Main {
     @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching the key into specified value")
     private String cast;
 
-    @Parameter(names = {"-d", "-kotlin-data"}, description = "Process only Kotlin data classes")
+    @Parameter(names = {"-d", "-kotlin-data"}, description = "Process only Kotlin data classes, but also enums & interfaces")
     private boolean kotlinDataOnly;
 
     @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")
@@ -109,7 +109,7 @@ public class Main {
           .sorted().forEach(className -> {
             try {
               Class<?> clazz = Class.forName(className);
-              if (kotlinDataOnly && !isKotlinData(clazz) && !clazz.isEnum()) return;
+              if (kotlinDataOnly && !isKotlinData(clazz) && !clazz.isEnum() && !clazz.isInterface()) return;
               var converted = converter.convert(clazz);
               if (converted != null) {
                 out.print("// ");
