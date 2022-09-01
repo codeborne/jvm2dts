@@ -35,6 +35,8 @@ Converted **TypeScript interfaces output from stdout** and all **errors are thro
 
 ### Using in Gradle (Kotlin DSL)
 
+[![Release](https://jitpack.io/v/codeborne/jvm2dts.svg)](https://jitpack.io/#codeborne/jvm2dts)
+
 Note: unreleased versions can also be obtained from https://jitpack.io/#codeborne/jvm2dts
 
 ```kotlin
@@ -46,7 +48,7 @@ repositories {
 }
 
 dependencies {
-  jvm2dts("com.github.codeborne:jvm2dts:1.6.5")
+  jvm2dts("com.github.codeborne:jvm2dts:VERSION")
 }
 
 tasks.register("types.ts") { 
