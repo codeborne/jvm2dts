@@ -134,6 +134,10 @@ interface Model extends Base {
   }
 }
 
-interface Base {
+interface Base extends AnyId {
   UUID getId();
+}
+
+interface AnyId {
+  Object getId();
 }

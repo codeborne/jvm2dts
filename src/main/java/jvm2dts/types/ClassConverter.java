@@ -4,13 +4,13 @@ import jdk.internal.org.objectweb.asm.*;
 import jvm2dts.ToTypeScriptConverter;
 import jvm2dts.TypeMapper;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.lang.reflect.*;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
@@ -50,7 +50,7 @@ public class ClassConverter implements ToTypeScriptConverter {
 
       var getters = stream(clazz.getMethods())
         .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && isLikeGetter(m.getName()))
-        .collect(toMap(Method::getName, m -> m));
+        .collect(toMap(Method::getName, m -> m, (m1, m2) -> m1.getReturnType().isAssignableFrom(m2.getReturnType()) ? m2 : m1));
 
       var methodNamesInOrder = new ArrayList<>(methodAnnotations.keySet());
       methodNamesInOrder.retainAll(getters.keySet());
