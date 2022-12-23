@@ -75,6 +75,18 @@ tasks.withType<KotlinCompile> { // or JavaCompile
 }
 ```
 
+Or depend directly on the source code (e.g. if Jitpack is down), add this to `settings.gradle`:
+
+```kotlin
+sourceControl {
+  gitRepository(java.net.URI("https://github.com/codeborne/jvm2dts.git")) {
+    producesModule("com.github.codeborne:jvm2dts")
+  }
+}
+```
+
+Then you can depend on a tagged version number, which Gradle will clone and build during building of your project.
+
 ### Recursive directory class loading
 
 While `jvm2dts` can **recursively walk through directories** with `-classesDir` parameter, this is not 
@@ -110,6 +122,7 @@ jvm2dts can read _Nullable_ annotations and will append ``?`` to the name of a v
 
 Similarly, getters annotated with _JsonIgnore_ will be omitted.
 
+<!--
 # Releasing a new version to Maven Central
 
 ```
@@ -117,3 +130,4 @@ MAVEN_USERNAME=xxx MAVEN_PASSWORD='xxx' ./gradlew publishSonaTypePublicationToMa
 ```
 
 Then navigate to https://oss.sonatype.org/, close, and then release the staging repository.
+-->
