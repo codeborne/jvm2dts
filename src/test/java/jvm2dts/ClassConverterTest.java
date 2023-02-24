@@ -102,6 +102,8 @@ interface JsonPropertyObject {
   @JsonProperty("namedProperty") Boolean getNotWhatIWant();
   Object getLiteralObject();
   @JsonIgnore String getIgnore();
+  String getKotlinPropertyIgnore();
+  @JsonIgnore String getKotlinPropertyIgnore$annotations();
 }
 
 class RealClass implements Base {

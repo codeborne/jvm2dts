@@ -88,7 +88,13 @@ public class ClassConverter implements ToTypeScriptConverter {
     var dashPos = propertyName.indexOf('-');
     if (dashPos > 0) propertyName = propertyName.substring(0, dashPos);
 
-    for (Annotation annotation : method.getDeclaredAnnotations()) {
+    var annotations = method.getAnnotations();
+    try {
+      if (annotations.length == 0)
+        annotations = method.getDeclaringClass().getMethod(method.getName() + "$annotations").getAnnotations();
+    } catch (NoSuchMethodException ignore) {}
+
+    for (Annotation annotation : annotations) {
       String annotationName = annotation.annotationType().getSimpleName();
       if (annotationName.equals("JsonIgnore")) return;
       else if (annotationName.equals("JsonProperty"))
