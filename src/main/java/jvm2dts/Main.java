@@ -36,6 +36,9 @@ public class Main {
     @Parameter(names = {"-d", "-kotlin-data"}, description = "Process only Kotlin data classes, but also enums & interfaces")
     private boolean kotlinDataOnly;
 
+    @Parameter(names = {"-annotated"}, description = "Process only annotated classes with comma-separated annotations, but also enums & interfaces")
+    private String withAnnotations;
+
     @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")
     private String classesDir;
 
@@ -58,6 +61,7 @@ public class Main {
 
     var packages = parsedArgs.packages;
     var kotlinDataOnly = parsedArgs.kotlinDataOnly;
+    var withAnnotations = parsedArgs.withAnnotations != null ? stream(parsedArgs.withAnnotations.split(",")).collect(toSet()) : null;
     var basePath = Paths.get(parsedArgs.classesDir);
     Set<String> excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
       stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
@@ -109,7 +113,8 @@ public class Main {
           .sorted().forEach(className -> {
             try {
               Class<?> clazz = Class.forName(className);
-              if (kotlinDataOnly && !isKotlinData(clazz) && !clazz.isEnum() && !clazz.isInterface()) return;
+              if ((kotlinDataOnly && !isKotlinData(clazz) || withAnnotations != null && !isAnnotated(clazz, withAnnotations)) &&
+                  !clazz.isEnum() && !clazz.isInterface()) return;
               var converted = converter.convert(clazz);
               if (converted != null) {
                 out.print("// ");
@@ -146,5 +151,9 @@ public class Main {
   private static boolean isKotlinData(Class<?> clazz) {
     return isFinal(clazz.getModifiers()) && stream(clazz.getDeclaredMethods()).anyMatch(m ->
       m.getName().equals("copy") || m.getName().startsWith("copy-"));
+  }
+
+  private static boolean isAnnotated(Class<?> clazz, Set<String> annotations) {
+    return stream(clazz.getAnnotations()).anyMatch(a -> annotations.contains(a.annotationType().getName()));
   }
 }
