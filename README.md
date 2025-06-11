@@ -21,7 +21,7 @@ Usage: <main class> [options]
     -classesDir
       Recursively look for classes from a location
     -d, -data-only
-      Find only Kotlin data classes
+      Find only data classes (which have implemented equals), but also enums & interfaces
       Default: false
     -e, -exclude
       Excludes classes in the generation matching a Java RegExp pattern

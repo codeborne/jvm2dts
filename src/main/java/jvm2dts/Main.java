@@ -15,14 +15,12 @@ import java.util.List;
 import java.util.Set;
 
 import static java.lang.System.*;
-import static java.lang.reflect.Modifier.isFinal;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class Main {
-
   static class Args {
     @Parameter
     private List<String> packages = new ArrayList<>();
@@ -33,10 +31,10 @@ public class Main {
     @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching the key into specified value")
     private String cast;
 
-    @Parameter(names = {"-d", "-kotlin-data"}, description = "Process only Kotlin data classes, but also enums & interfaces")
-    private boolean kotlinDataOnly;
+    @Parameter(names = {"-d", "-data-only"}, description = "Process only data classes (which have implemented equals), but also enums & interfaces")
+    private boolean dataOnly;
 
-    @Parameter(names = {"-annotated"}, description = "Process only annotated classes with comma-separated annotations, but also enums & interfaces")
+    @Parameter(names = {"-annotated"}, description = "Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files), but also enums & interfaces")
     private String withAnnotations;
 
     @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")
@@ -49,7 +47,7 @@ public class Main {
     private boolean help;
   }
 
-  public static void main(String[] args) throws ClassNotFoundException, IOException {
+  public static void main(String[] args) throws Exception {
     var parsedArgs = new Args();
     var jc = JCommander.newBuilder().addObject(parsedArgs).build();
     jc.parse(args);
@@ -60,7 +58,7 @@ public class Main {
     }
 
     var packages = parsedArgs.packages;
-    var kotlinDataOnly = parsedArgs.kotlinDataOnly;
+    var dataOnly = parsedArgs.dataOnly;
     var withAnnotations = parsedArgs.withAnnotations != null ? stream(parsedArgs.withAnnotations.split(",")).collect(toSet()) : null;
     var basePath = Paths.get(parsedArgs.classesDir);
     Set<String> excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
@@ -113,7 +111,7 @@ public class Main {
           .sorted().forEach(className -> {
             try {
               Class<?> clazz = Class.forName(className);
-              if ((kotlinDataOnly && !isKotlinData(clazz) || withAnnotations != null && !isAnnotated(clazz, withAnnotations)) &&
+              if ((dataOnly && !isData(clazz) || withAnnotations != null && !isAnnotated(clazz, withAnnotations)) &&
                   !clazz.isEnum() && !clazz.isInterface()) return;
               var converted = converter.convert(clazz);
               if (converted != null) {
@@ -148,9 +146,13 @@ public class Main {
       .collect(toList());
   }
 
-  private static boolean isKotlinData(Class<?> clazz) {
-    return isFinal(clazz.getModifiers()) && stream(clazz.getDeclaredMethods()).anyMatch(m ->
-      m.getName().equals("copy") || m.getName().startsWith("copy-"));
+  private static boolean isData(Class<?> clazz) {
+    try {
+      clazz.getDeclaredMethod("equals", Object.class);
+      return true;
+    } catch (NoSuchMethodException e) {
+      return false;
+    }
   }
 
   private static boolean isAnnotated(Class<?> clazz, Set<String> annotations) {
