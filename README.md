@@ -51,22 +51,15 @@ dependencies {
   jvm2dts("com.github.codeborne:jvm2dts:VERSION")
 }
 
-tasks.register("types.ts") { 
+tasks.register<JavaExec>("types.ts") { 
   dependsOn("classes")
-  doLast {
-      project.file("api/types.ts").writeText(ByteArrayOutputStream().use { out ->
-        project.javaexec {
-          standardOutput = out
-          mainClass.set("jvm2dts.Main")
-          jvmArgs = listOf("--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED") // Java 16+ needs this
-          classpath = jvm2dts + sourceSets.main.get().runtimeClasspath
-          args("-exclude", ".*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*", 
-               "-cast", "MyNumericClass=number",
-               "-classesDir", "${project.buildDir}/classes/java/main") // or kotlin/main
-        }
-      out.toString()
-    })
-  }
+  mainClass = "jvm2dts.Main"
+  classpath = jvm2dts + sourceSets.main.get().runtimeClasspath
+  jvmArgs = listOf("--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED") // Java 16+ needs this
+  args("-exclude", ".*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*",
+    "-cast", "MyNumericClass=number",
+    "-classesDir", "${project.buildDir}/classes/java/main") // or kotlin/main
+  standardOutput = project.file("api/types.ts").outputStream()
 }
 
 tasks.withType<JavaCompile> { // or KotlinCompile
