@@ -44,7 +44,7 @@ val jvm2dts by configurations.creating
 
 repositories {
   mavenCentral()
-  maven { url = uri("https://jitpack.io") }
+  maven("https://jitpack.io")
 }
 
 dependencies {
@@ -54,7 +54,6 @@ dependencies {
 tasks.register("types.ts") { 
   dependsOn("classes")
   doLast {
-      val mainSource = sourceSets.main.get()
       project.file("api/types.ts").writeText(ByteArrayOutputStream().use { out ->
         project.javaexec {
           standardOutput = out
@@ -63,14 +62,14 @@ tasks.register("types.ts") {
           classpath = jvm2dts + sourceSets.main.get().runtimeClasspath
           args("-exclude", ".*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*", 
                "-cast", "MyNumericClass=number",
-               "-classesDir", "${project.buildDir}/classes/kotlin/main")
+               "-classesDir", "${project.buildDir}/classes/java/main") // or kotlin/main
         }
       out.toString()
     })
   }
 }
 
-tasks.withType<KotlinCompile> { // or JavaCompile
+tasks.withType<JavaCompile> { // or KotlinCompile
   finalizedBy("types.ts")
 }
 ```
