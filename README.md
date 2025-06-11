@@ -56,10 +56,12 @@ tasks.register<JavaExec>("types.ts") {
   mainClass = "jvm2dts.Main"
   classpath = jvm2dts + sourceSets.main.get().runtimeClasspath
   jvmArgs = listOf("--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED") // Java 16+ needs this
-  args("-exclude", ".*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*",
+  args("-data-only", // or omit this to include all classes
+    "-exclude", ".*SuffixOfClassNameIDontWant|PrefixOfClassNameIDontWant.*",
     "-cast", "MyNumericClass=number",
     "-classesDir", "${project.buildDir}/classes/java/main") // or kotlin/main
-  standardOutput = project.file("api/types.ts").outputStream()
+  standardOutput = ByteArrayOutputStream()
+  doLast { project.file("api/types.ts").writeText(standardOutput.toString()) }
 }
 
 tasks.withType<JavaCompile> { // or KotlinCompile
