@@ -102,8 +102,7 @@ public class Main {
               if (exclude == null) return true;
 
               var classString = pathString.substring(0, pathString.lastIndexOf('.'));
-              if (classString.matches(exclude)) return false;
-              return !classString.matches(".*\\$\\d+$");
+              return !classString.matches(exclude);
             }
             return false;
           })
