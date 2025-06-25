@@ -69,6 +69,13 @@ class ClassConverterTest {
   }
 
   @Test
+  void record() {
+    assertThat(converter.convert(Record.class)).isEqualTo("interface Record {" +
+      "hello: string; " +
+      "world: string;}");
+  }
+
+  @Test
   void emptyTypes() {
     assertThat(converter.convert(Empty.class)).isNull();
     assertThat(converter.convert(OnlyPrivate.class)).isNull();
@@ -143,3 +150,5 @@ interface Base extends AnyId {
 interface AnyId {
   Object getId();
 }
+
+record Record(String hello, String world) {}
