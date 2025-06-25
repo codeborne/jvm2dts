@@ -95,12 +95,10 @@ public class Main {
       if (packageUrl.getProtocol().equals("file")) {
         try {
           var exclude = parsedArgs.excludeRegex;
-
           Files.walk(Paths.get(packageUrl.toURI())).filter(Files::isRegularFile).filter(path -> {
             var pathString = path.getFileName().toString();
             if (pathString.endsWith(".class")) {
               if (exclude == null) return true;
-
               var classString = pathString.substring(0, pathString.lastIndexOf('.'));
               return !classString.matches(exclude);
             }
@@ -112,6 +110,7 @@ public class Main {
               Class<?> clazz = Class.forName(className);
               if ((dataOnly && !isData(clazz) || withAnnotations != null && !isAnnotated(clazz, withAnnotations)) &&
                   !clazz.isEnum() && !clazz.isInterface()) return;
+              // TODO: record support
               var converted = converter.convert(clazz);
               if (converted != null) {
                 out.print("// ");
@@ -131,7 +130,6 @@ public class Main {
         exit(3);
       }
     }
-    exit(0);
   }
 
   private static List<String> findPackages(Path basePath, Set<String> excludeDirs) throws IOException {

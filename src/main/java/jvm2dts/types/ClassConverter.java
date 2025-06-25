@@ -35,7 +35,8 @@ public class ClassConverter implements ToTypeScriptConverter {
         .max(comparing(Field::getName)).get();
       return (int) asmField.get(null);
     } catch (Exception e) {
-      return Opcodes.ASM6; // Java 11
+      System.err.println("Could not detect ASM version: " + e.getMessage());
+      return Opcodes.ASM8; // Java 17
     }
   }
 
@@ -51,9 +52,12 @@ public class ClassConverter implements ToTypeScriptConverter {
       var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
       new ClassReader(in).accept(new ClassAnnotationExtractor(methodAnnotations), ClassReader.SKIP_CODE);
 
-      var getters = stream(clazz.getMethods())
+      var getters = clazz.isRecord() ?
+        stream(clazz.getRecordComponents())
+          .collect(toMap(RecordComponent::getName, RecordComponent::getAccessor)) :
+        stream(clazz.getMethods())
         .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && isLikeGetter(m.getName()))
-        .collect(toMap(Method::getName, m -> m, (m1, m2) -> m1.getReturnType().isAssignableFrom(m2.getReturnType()) ? m2 : m1));
+        .collect(toMap(Method::getName, m -> m));
 
       var methodNamesInOrder = new ArrayList<>(methodAnnotations.keySet());
       methodNamesInOrder.retainAll(getters.keySet());
@@ -84,8 +88,7 @@ public class ClassConverter implements ToTypeScriptConverter {
     var fieldBuffer = new StringBuilder();
 
     var name = method.getName();
-    var propertyName = name.startsWith("get") ? name.substring(3, 4).toLowerCase() + name.substring(4) :
-                              name.startsWith("is") ? name.substring(2, 3).toLowerCase() + name.substring(3) : null;
+    var propertyName = toPropertyName(name);
 
     if (propertyName == null) return;
     var dashPos = propertyName.indexOf('-');
@@ -133,6 +136,12 @@ public class ClassConverter implements ToTypeScriptConverter {
     out.append(typeBuffer);
     if (isIterable) out.append("[]");
     out.append("; ");
+  }
+
+  private static String toPropertyName(String name) {
+    return name.startsWith("get") ? name.substring(3, 4).toLowerCase() + name.substring(4) :
+           name.startsWith("is") ? name.substring(2, 3).toLowerCase() + name.substring(3) :
+           name;
   }
 
   private boolean processGenericField(StringBuilder typeBuffer, Class<?> fieldType, Type[] parameterTypes) {

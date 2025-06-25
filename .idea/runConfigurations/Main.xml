@@ -7,7 +7,7 @@
     </classpathModifications>
     <option name="MAIN_CLASS_NAME" value="jvm2dts.Main" />
     <module name="jvm2dts.main" />
-    <option name="PROGRAM_PARAMETERS" value="-d -classesDir $PROJECT_DIR$/../paywerk/paywerk/build/classes/kotlin/main" />
+    <option name="PROGRAM_PARAMETERS" value="-d -classesDir build/classes/java/main" />
     <option name="VM_PARAMETERS" value="--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />

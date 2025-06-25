@@ -9,7 +9,7 @@ Works with Java/Lombok/Kotlin data classes. Java records are not yet supported.
 ## Usage
 
 Using `jvm2dts` requires that you include class paths of both the target project and `jvm2dts` itself. 
-Java version must be **at least 11**
+Java version must be **at least 17** (for records support).
 
 ```
 Example: java -classpath path/to/package jvm2dts.Main -exclude MyRegExp -cast MyClass=number,AnotherClass=string package1 package2 package3

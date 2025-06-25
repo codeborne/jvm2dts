@@ -6,7 +6,7 @@ plugins {
 group 'com.github.codeborne'
 version '1.6-SNAPSHOT'
 
-sourceCompatibility = targetCompatibility = 11
+sourceCompatibility = targetCompatibility = 17
 
 compileJava {
     options.compilerArgs.add('--add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED')
