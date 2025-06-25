@@ -31,7 +31,7 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   static int detectAsmVersion() {
     try {
-      var asmField = stream(Opcodes.class.getDeclaredFields()).filter(f -> f.getName().startsWith("ASM"))
+      var asmField = stream(Opcodes.class.getDeclaredFields()).filter(f -> f.getName().startsWith("ASM") && !f.getName().contains("_"))
         .max(comparing(Field::getName)).get();
       return (int) asmField.get(null);
     } catch (Exception e) {
