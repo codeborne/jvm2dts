@@ -57,7 +57,7 @@ public class ClassConverter implements ToTypeScriptConverter {
           .collect(toMap(RecordComponent::getName, RecordComponent::getAccessor)) :
         stream(clazz.getMethods())
         .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && isLikeGetter(m.getName()))
-        .collect(toMap(Method::getName, m -> m));
+        .collect(toMap(Method::getName, m -> m, (m1, m2) -> m1.getReturnType().isAssignableFrom(m2.getReturnType()) ? m2 : m1));
 
       var methodNamesInOrder = new ArrayList<>(methodAnnotations.keySet());
       methodNamesInOrder.retainAll(getters.keySet());
