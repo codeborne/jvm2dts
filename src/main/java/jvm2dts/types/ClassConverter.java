@@ -5,8 +5,8 @@ import jvm2dts.ToTypeScriptConverter;
 import jvm2dts.TypeMapper;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.lang.reflect.*;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,6 +16,7 @@ import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.logging.Level.SEVERE;
 import static java.util.stream.Collectors.toMap;
@@ -30,7 +31,9 @@ public class ClassConverter implements ToTypeScriptConverter {
 
   static int detectAsmVersion() {
     try {
-      return (int) Opcodes.class.getField("ASM7").get(null); // Java 16
+      var asmField = stream(Opcodes.class.getDeclaredFields()).filter(f -> f.getName().startsWith("ASM"))
+        .max(comparing(Field::getName)).get();
+      return (int) asmField.get(null);
     } catch (Exception e) {
       return Opcodes.ASM6; // Java 11
     }
