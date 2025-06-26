@@ -5,13 +5,13 @@ import com.beust.jcommander.Parameter;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
 import static java.lang.System.err;
 import static java.lang.System.out;
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 public class Main {
@@ -52,11 +52,8 @@ public class Main {
     }
 
     var packages = new LinkedHashSet<>(parsedArgs.packages);
-    var dataOnly = parsedArgs.dataOnly;
     var withAnnotations = parsedArgs.withAnnotations != null ? stream(parsedArgs.withAnnotations.split(",")).collect(toSet()) : null;
     var basePath = Paths.get(parsedArgs.classesDir);
-    Set<String> excludeDirs = parsedArgs.excludeDirs == null ? emptySet() :
-      stream(parsedArgs.excludeDirs.split(",")).collect(toSet());
 
     var customTypes = new HashMap<Class<?>, String>();
     if (parsedArgs.cast != null) {
@@ -69,35 +66,51 @@ public class Main {
 
     try {
       var exclude = parsedArgs.excludeRegex;
-      Files.walk(basePath).filter(Files::isRegularFile).filter(path -> {
-        var pathString = path.getFileName().toString();
-        if (pathString.endsWith(".class")) {
+      Files.walk(basePath)
+        .filter(Files::isRegularFile)
+        .filter(path -> path.getFileName().toString().endsWith(".class"))
+        .filter(path -> {
           if (exclude == null) return true;
-          var classString = pathString.substring(0, pathString.lastIndexOf('.'));
-          return !classString.matches(exclude);
-        }
-        return false;
-      })
-    .map(path -> path.toString().substring(basePath.toString().length() + 1).replace(".class", "").replace("/", "."))
-      .filter(className -> packages.isEmpty() || packages.contains(className.substring(0, className.lastIndexOf('.'))))
-      .sorted().forEach(className -> {
-        try {
-          Class<?> clazz = Class.forName(className);
-          if ((dataOnly && !isData(clazz) || withAnnotations != null && !isAnnotated(clazz, withAnnotations)) &&
-              !clazz.isEnum() && !clazz.isInterface()) return;
-          var converted = converter.convert(clazz);
-          if (converted != null) {
-            out.print("// ");
-            out.println(className);
-            out.print("export ");
-            out.println(converted);
-          }
-        } catch (Throwable e) {
-          err.println("// Failed to load: " + e);
-        }
-      });
+          var fileName = path.getFileName().toString();
+          var className = fileName.substring(0, fileName.lastIndexOf('.'));
+          return !className.matches(exclude);
+        })
+        .map(path -> toClassName(path, basePath))
+        .filter(className -> isInPackage(className, packages))
+        .sorted()
+        .forEach(className -> processClass(className, converter, parsedArgs.dataOnly, withAnnotations));
     } catch (IOException e) {
       err.println("// Could not access classes in " + basePath + ": " + e);
+    }
+  }
+
+  private static String toClassName(Path path, Path basePath) {
+    var pathString = path.toString();
+    var baseString = basePath.toString();
+    var relativePath = pathString.substring(baseString.length() + 1);
+    return relativePath.substring(0, relativePath.length() - ".class".length()).replace('/', '.');
+  }
+
+  private static boolean isInPackage(String className, Set<String> packages) {
+    if (packages.isEmpty()) return true;
+    var lastDot = className.lastIndexOf('.');
+    return lastDot != -1 && packages.contains(className.substring(0, lastDot));
+  }
+
+  private static void processClass(String className, Converter converter, boolean dataOnly, Set<String> withAnnotations) {
+    try {
+      Class<?> clazz = Class.forName(className);
+      if ((dataOnly && !isData(clazz) || withAnnotations != null && !isAnnotated(clazz, withAnnotations)) &&
+        !clazz.isEnum() && !clazz.isInterface()) {
+        return;
+      }
+      var converted = converter.convert(clazz);
+      if (converted != null) {
+        out.println("// " + className);
+        out.println("export " + converted);
+      }
+    } catch (Throwable e) {
+      err.println("// Failed to load class " + className + ": " + e.getMessage());
     }
   }
 
