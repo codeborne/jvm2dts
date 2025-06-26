@@ -1,12 +1,12 @@
 package jvm2dts;
 
-import jvm2dts.types.EnumConverter;
 import org.junit.jupiter.api.Test;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class EnumConverterTest {
-  private final EnumConverter converter = new EnumConverter();
+  private final Converter converter = new Converter(new TypeMapper(emptyMap()));
 
   @Test
   void convertEnum() {
