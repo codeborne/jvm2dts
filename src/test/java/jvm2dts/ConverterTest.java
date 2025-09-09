@@ -20,6 +20,7 @@ public class ConverterTest {
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
       "mapInMap: {[key: string]: {[key: string]: number}}; " +
+      "optional?: Role; " +
       "rawType: ArrayList; " +
       "roles: Role[]; " +
       "superGeneric: SingleGeneric<Role>; " +
@@ -44,6 +45,7 @@ interface Collections {
   List<? super Role> getSuperGenericList();
   List<SingleGeneric<?>> getGenericRecursiveList();
   @SuppressWarnings("rawtypes") ArrayList getRawType();
+  Optional<Role> getOptional();
 
   static boolean getDoNotGenerateStatics() { return false; }
 }
