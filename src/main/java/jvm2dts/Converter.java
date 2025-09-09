@@ -21,7 +21,6 @@ public class Converter {
   Logger logger = Logger.getLogger(Converter.class.getName());
 
   static final int ASM_VERSION = detectAsmVersion();
-  static final char[] ALPHABET = "TUVWYXYZABCDEFGHIJKLMNOPQRS".toCharArray();
   TypeMapper typeMapper;
 
   static int detectAsmVersion() {
@@ -196,7 +195,7 @@ public class Converter {
         typeBuffer.append("<");
         for (int j = 0; j < parameterTypes.length; j++) {
           if (j > 0) typeBuffer.append(",");
-          typeBuffer.append(ALPHABET[j % ALPHABET.length]);
+          convertIterableGenerics(parameterTypes[j], typeBuffer);
         }
         typeBuffer.append(">");
       }
@@ -205,14 +204,12 @@ public class Converter {
   }
 
   private void convertIterableGenerics(Type type, StringBuilder typeBuffer) throws ClassCastException {
-    if (type instanceof WildcardType) {
-      var wildcardType = (WildcardType) type;
+    if (type instanceof WildcardType wildcardType) {
       var bounds = wildcardType.getLowerBounds();
       if (bounds.length == 0) bounds = wildcardType.getUpperBounds();
       if (bounds[0] instanceof ParameterizedType) convertIterableGenerics(bounds[0], typeBuffer);
       else typeBuffer.append(typeMapper.getTSType((Class<?>) bounds[0]));
-    } else if (type instanceof ParameterizedType) {
-      var parameterizedType = (ParameterizedType) type;
+    } else if (type instanceof ParameterizedType parameterizedType) {
       var elementType = (Class<?>) parameterizedType.getRawType();
       if (Iterable.class.isAssignableFrom(elementType))
         typeBuffer.append(typeMapper.getTSType((Class<?>) parameterizedType.getActualTypeArguments()[0])).append("[]");

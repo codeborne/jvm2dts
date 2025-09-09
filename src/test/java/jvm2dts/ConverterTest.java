@@ -14,15 +14,15 @@ public class ConverterTest {
   void collections() {
     assertThat(converter.convert(Collections.class)).isEqualTo("interface Collections {" +
       "dates: string[]; " +
-      "extendedGeneric: SingleGeneric<T>; " +
-      "generic: MultiGeneric<T,U,V>; " +
+      "extendedGeneric: SingleGeneric<Role>; " +
+      "generic: MultiGeneric<any,any,any>; " +
       "genericRecursiveList: SingleGeneric[]; " +
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
       "mapInMap: {[key: string]: {[key: string]: number}}; " +
       "rawType: ArrayList; " +
       "roles: Role[]; " +
-      "superGeneric: SingleGeneric<T>; " +
+      "superGeneric: SingleGeneric<Role>; " +
       "superGenericList: Role[];" +
       "}");
   }
