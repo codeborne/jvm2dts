@@ -5,10 +5,7 @@ import jdk.internal.org.objectweb.asm.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static java.lang.reflect.Modifier.isPublic;
@@ -86,8 +83,9 @@ public class Converter {
       new ClassReader(in).accept(new ClassAnnotationExtractor(methodAnnotations), ClassReader.SKIP_CODE);
 
       var getters = clazz.isRecord() ?
-        stream(clazz.getRecordComponents())
-          .collect(toMap(RecordComponent::getName, RecordComponent::getAccessor)) :
+        stream(clazz.getMethods())
+          .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && m.getDeclaringClass() != Object.class && !Set.of("hashCode", "toString").contains(m.getName()))
+          .collect(toMap(Method::getName, m -> m)) :
         stream(clazz.getMethods())
           .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && isLikeGetter(m.getName()))
           .collect(toMap(m -> toPropertyName(m.getName()), m -> m, (m1, m2) -> m1.getReturnType().isAssignableFrom(m2.getReturnType()) ? m2 : m1));
