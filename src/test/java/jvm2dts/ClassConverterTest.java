@@ -17,13 +17,14 @@ class ClassConverterTest {
   @Test
   void modelClass() {
     assertThat(converter.convert(Model.class)).isEqualTo("interface Model {" +
-      "name: string; " +
       "age: number; " +
-      "role: ModelRole; " +
-      "listOfLong: number[]; " +
-      "listOfList: string[][]; " +
       "details: ModelDetails; " +
-      "id: string;}");
+      "id: string; " +
+      "listOfList: string[][]; " +
+      "listOfLong: number[]; " +
+      "name: string; " +
+      "role: ModelRole;" +
+      "}");
 
     assertThat(converter.convert(Model.Details.class)).isEqualTo("interface ModelDetails {" +
       "stuff: string;}");
@@ -34,11 +35,11 @@ class ClassConverterTest {
     assertThat(converter.convert(Primitives.class)).isEqualTo("interface Primitives {" +
       "aByte: number; " +
       "aShort: number; " +
-      "int: number; " +
-      "long: number; " +
-      "float: number; " +
+      "boolean: boolean; " +
       "double: number; " +
-      "boolean: boolean;}");
+      "float: number; " +
+      "int: number; " +
+      "long: number;}");
   }
 
   @Test
@@ -46,18 +47,19 @@ class ClassConverterTest {
     assertThat(converter.convert(WrapperTypes.class)).isEqualTo("interface WrapperTypes {" +
       "aByte: number; " +
       "aShort: number; " +
-      "integer: number; " +
-      "long: number; " +
       "boolean: boolean; " +
+      "double?: number; " +
       "float?: number; " +
-      "double?: number;}");
+      "integer: number; " +
+      "long: number;}");
   }
 
   @Test
   void jsonProperty() {
     assertThat(converter.convert(JsonPropertyObject.class)).isEqualTo("interface JsonPropertyObject {" +
-      "namedProperty: boolean; " +
-      "literalObject: any;}");
+      "literalObject: any; " +
+      "namedProperty: boolean;" +
+      "}");
   }
 
   @Test
@@ -70,6 +72,7 @@ class ClassConverterTest {
   @Test
   void record() {
     assertThat(converter.convert(Record.class)).isEqualTo("interface Record {" +
+      "isCool: boolean; " +
       "hello: string; " +
       "world: string;}");
   }
@@ -150,4 +153,4 @@ interface AnyId {
   Object getId();
 }
 
-record Record(String hello, String world) {}
+record Record(String hello, String world, boolean isCool) {}

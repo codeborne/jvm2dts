@@ -90,7 +90,7 @@ public class Converter {
           .collect(toMap(RecordComponent::getName, RecordComponent::getAccessor)) :
         stream(clazz.getMethods())
           .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && isLikeGetter(m.getName()))
-          .collect(toMap(Method::getName, m -> m, (m1, m2) -> m1.getReturnType().isAssignableFrom(m2.getReturnType()) ? m2 : m1));
+          .collect(toMap(m -> toPropertyName(m.getName()), m -> m, (m1, m2) -> m1.getReturnType().isAssignableFrom(m2.getReturnType()) ? m2 : m1));
 
       var methodNamesInOrder = new ArrayList<>(methodAnnotations.keySet());
       methodNamesInOrder.retainAll(getters.keySet());
@@ -101,7 +101,7 @@ public class Converter {
       methodNamesInOrder.addAll(superClassGetters);
 
       for (String name : methodNamesInOrder) {
-        processProperty(getters.get(name), output, methodAnnotations);
+        processProperty(name, getters.get(name), output, methodAnnotations);
       }
     } catch (Exception e) {
       logger.log(SEVERE, "Failed to convert " + clazz, e);
@@ -117,11 +117,8 @@ public class Converter {
     return (methodName.startsWith("get") || methodName.startsWith("is")) && !methodName.equals("getClass");
   }
 
-  private void processProperty(Method method, StringBuilder out, Map<String, List<String>> classAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  private void processProperty(String propertyName, Method method, StringBuilder out, Map<String, List<String>> classAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
-
-    var name = method.getName();
-    var propertyName = toPropertyName(name);
 
     if (propertyName == null) return;
     var dashPos = propertyName.indexOf('-');
@@ -143,7 +140,7 @@ public class Converter {
     fieldBuffer.append(propertyName);
 
     if (!classAnnotations.isEmpty())
-      for (String annotation : classAnnotations.getOrDefault(name, emptyList()))
+      for (var annotation : classAnnotations.getOrDefault(method.getName(), emptyList()))
         if (annotation.contains("Nullable;"))
           fieldBuffer.append("?");
 
@@ -162,7 +159,7 @@ public class Converter {
         typeBuffer.append(typeMapper.getTSType(isIterable ? type.getComponentType() : type));
       }
     } catch (Exception e) {
-      logger.log(SEVERE, "Failed to convert property type for `" + name + "` in `" + method.getDeclaringClass() + "`, defaulting to `any`", e);
+      logger.log(SEVERE, "Failed to convert property type for `" + propertyName + "` in `" + method.getDeclaringClass() + "`, defaulting to `any`", e);
       typeBuffer = new StringBuilder("any");
     }
     out.append(fieldBuffer);

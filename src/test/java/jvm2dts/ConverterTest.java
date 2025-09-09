@@ -13,17 +13,17 @@ public class ConverterTest {
   @Test
   void collections() {
     assertThat(converter.convert(Collections.class)).isEqualTo("interface Collections {" +
-      "roles: Role[]; " +
       "dates: string[]; " +
+      "extendedGeneric: SingleGeneric<T>; " +
+      "generic: MultiGeneric<T,U,V>; " +
+      "genericRecursiveList: SingleGeneric[]; " +
       "ids: string[]; " +
       "map: {[key: string]: number}; " +
       "mapInMap: {[key: string]: {[key: string]: number}}; " +
-      "extendedGeneric: SingleGeneric<T>; " +
+      "rawType: ArrayList; " +
+      "roles: Role[]; " +
       "superGeneric: SingleGeneric<T>; " +
-      "generic: MultiGeneric<T,U,V>; " +
-      "superGenericList: Role[]; " +
-      "genericRecursiveList: SingleGeneric[]; " +
-      "rawType: ArrayList;" +
+      "superGenericList: Role[];" +
       "}");
   }
 }

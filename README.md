@@ -4,7 +4,7 @@ Generates TypeScript definitions (d.ts) for Java/Kotlin model classes using refl
 that can be used for client-side type checking of API calls and responses.
 
 All public getters are read by default, in a similar way to Jackson.
-Works with Java/Lombok/Kotlin data classes. Java records are not yet supported.
+Works with Java/Lombok/Kotlin data classes.
 
 ## Usage
 
