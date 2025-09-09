@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
@@ -51,7 +52,9 @@ class ClassConverterTest {
       "double?: number; " +
       "float?: number; " +
       "integer: number; " +
-      "long: number;}");
+      "long: number; " +
+      "optional?: string;" +
+      "}");
   }
 
   @Test
@@ -106,6 +109,7 @@ interface WrapperTypes {
   Boolean isBoolean();
   @Nullable Float getFloat();
   @Nullable Double getDouble();
+  Optional<String> getOptional();
 }
 
 @SuppressWarnings("unused")

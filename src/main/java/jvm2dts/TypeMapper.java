@@ -71,7 +71,7 @@ public class TypeMapper {
   }
 
   public String getTSType(Class<?> type) {
-    String simple = getSimpleTSType(type);
+    var simple = getSimpleTSType(type);
     return simple != null ? simple : convertName(type);
   }
 }

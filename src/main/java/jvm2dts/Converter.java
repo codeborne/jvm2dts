@@ -145,13 +145,17 @@ public class Converter {
         if (annotation.contains("Nullable;"))
           fieldBuffer.append("?");
 
+    var type = method.getReturnType();
+    if (type == Optional.class) {
+      fieldBuffer.append("?");
+      var parameterTypes = ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments();
+      type = (Class<?>) parameterTypes[0];
+    }
     fieldBuffer.append(": ");
 
     boolean isIterable = false;
     var typeBuffer = new StringBuilder();
     try {
-      var type = method.getReturnType();
-
       if (method.getGenericReturnType() instanceof ParameterizedType) {
         var parameterTypes = ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments();
         isIterable = processGenericField(typeBuffer, type, parameterTypes);
