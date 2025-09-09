@@ -74,6 +74,7 @@ class ClassConverterTest {
     assertThat(converter.convert(Record.class)).isEqualTo("interface Record {" +
       "isCool: boolean; " +
       "hello: string; " +
+      "\"@key\": string; " +
       "notIncluded: boolean; " +
       "world: string;}");
   }
@@ -156,4 +157,5 @@ interface AnyId {
 
 record Record(String hello, String world, boolean isCool) {
   @JsonProperty public boolean notIncluded() { return false; }
+  @JsonProperty("@key") public String key() { return ""; }
 }

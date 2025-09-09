@@ -134,6 +134,7 @@ public class Converter {
       else if (annotationName.equals("JsonProperty")) {
         var overriddenName = (String) annotation.getClass().getMethod("value").invoke(annotation);
         if (!overriddenName.isEmpty()) propertyName = overriddenName;
+        if (!propertyName.matches("^\\w+$")) propertyName = "\"" + propertyName + "\"";
       }
     }
 
