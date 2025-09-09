@@ -131,8 +131,10 @@ public class Converter {
     for (Annotation annotation : annotations) {
       String annotationName = annotation.annotationType().getSimpleName();
       if (annotationName.equals("JsonIgnore")) return;
-      else if (annotationName.equals("JsonProperty"))
-        propertyName = (String) annotation.getClass().getMethod("value").invoke(annotation);
+      else if (annotationName.equals("JsonProperty")) {
+        var overriddenName = (String) annotation.getClass().getMethod("value").invoke(annotation);
+        if (!overriddenName.isEmpty()) propertyName = overriddenName;
+      }
     }
 
     fieldBuffer.append(propertyName);
