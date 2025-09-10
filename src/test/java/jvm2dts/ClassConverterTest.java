@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import java.lang.annotation.Retention;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,11 +77,12 @@ class ClassConverterTest {
   @Test
   void record() {
     assertThat(converter.convert(Record.class)).isEqualTo("interface Record {" +
-      "isCool: boolean; " +
-      "hello: string; " +
-      "\"@key\": string; " +
       "notIncluded: boolean; " +
-      "world: string;}");
+      "\"@key\": string; " +
+      "hello: string; " +
+      "world?: string; " +
+      "isCool: boolean;" +
+      "}");
   }
 
   @Test
@@ -87,6 +90,9 @@ class ClassConverterTest {
     assertThat(converter.convert(Empty.class)).isNull();
     assertThat(converter.convert(OnlyPrivate.class)).isNull();
   }
+
+  @Retention(RUNTIME)
+  @interface Nullable {}
 }
 
 @SuppressWarnings("unused")
@@ -108,7 +114,7 @@ interface WrapperTypes {
   Long getLong();
   Boolean isBoolean();
   @Nullable Float getFloat();
-  @Nullable Double getDouble();
+  @ClassConverterTest.Nullable Double getDouble();
   Optional<String> getOptional();
 }
 
@@ -159,7 +165,7 @@ interface AnyId {
   Object getId();
 }
 
-record Record(String hello, String world, boolean isCool) {
+record Record(String hello, @ClassConverterTest.Nullable String world, boolean isCool) {
   @JsonProperty public boolean notIncluded() { return false; }
   @JsonProperty("@key") public String key() { return ""; }
 }

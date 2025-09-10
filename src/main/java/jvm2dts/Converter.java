@@ -114,7 +114,7 @@ public class Converter {
     return (methodName.startsWith("get") || methodName.startsWith("is")) && !methodName.equals("getClass");
   }
 
-  private void processProperty(String propertyName, Method method, StringBuilder out, Map<String, List<String>> classAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  private void processProperty(String propertyName, Method method, StringBuilder out, Map<String, List<String>> methodAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
 
     if (propertyName == null) return;
@@ -139,8 +139,8 @@ public class Converter {
 
     fieldBuffer.append(propertyName);
 
-    if (!classAnnotations.isEmpty())
-      for (var annotation : classAnnotations.getOrDefault(method.getName(), emptyList()))
+    if (!methodAnnotations.isEmpty())
+      for (var annotation : methodAnnotations.getOrDefault(method.getName(), emptyList()))
         if (annotation.contains("Nullable;"))
           fieldBuffer.append("?");
 
@@ -247,7 +247,7 @@ public class Converter {
     }
 
     @Override public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-      if (!isPublic(access) || !isLikeGetter(name)) return null;
+      if (!isPublic(access)) return null;
       return new MethodAnnotationExtractor(annotations.computeIfAbsent(name, k -> new ArrayList<>()));
     }
   }
