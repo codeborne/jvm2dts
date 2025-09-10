@@ -74,12 +74,12 @@ public class Converter {
   }
 
   private String convertClass(Class<?> clazz) {
-    var output = new StringBuilder("interface ").append(convertName(clazz)).append(" {");
-    var methodAnnotations = new LinkedHashMap<String, List<String>>();
+    var out = new StringBuilder("interface ").append(convertName(clazz)).append(" {");
+    var nonRuntimeAnnotations = new LinkedHashMap<String, List<String>>();
 
     try {
       var in = clazz.getClassLoader().getResourceAsStream(clazz.getName().replace(".", "/") + ".class");
-      new ClassReader(in).accept(new ClassAnnotationExtractor(methodAnnotations), ClassReader.SKIP_CODE);
+      new ClassReader(in).accept(new ClassAnnotationExtractor(nonRuntimeAnnotations), ClassReader.SKIP_CODE);
 
       var getters = clazz.isRecord() ?
         stream(clazz.getMethods())
@@ -89,7 +89,7 @@ public class Converter {
           .filter(m -> !isStatic(m.getModifiers()) && m.getParameterCount() == 0 && isLikeGetter(m.getName()))
           .collect(toMap(m -> toPropertyName(m.getName()), m -> m, (m1, m2) -> m1.getReturnType().isAssignableFrom(m2.getReturnType()) ? m2 : m1));
 
-      var methodNamesInOrder = new ArrayList<>(methodAnnotations.keySet());
+      var methodNamesInOrder = new ArrayList<>(nonRuntimeAnnotations.keySet());
       methodNamesInOrder.retainAll(getters.keySet());
 
       var superClassGetters = new ArrayList<>(getters.keySet());
@@ -98,15 +98,15 @@ public class Converter {
       methodNamesInOrder.addAll(superClassGetters);
 
       for (String name : methodNamesInOrder) {
-        processProperty(name, getters.get(name), output, methodAnnotations);
+        processProperty(out, name, getters.get(name), nonRuntimeAnnotations);
       }
     } catch (Exception e) {
       logger.log(SEVERE, "Failed to convert " + clazz, e);
     }
 
-    if (output.charAt(output.length() - 1) == ' ') output.setLength(output.length() - 1);
-    output.append("}");
-    var result = output.toString();
+    if (out.charAt(out.length() - 1) == ' ') out.setLength(out.length() - 1);
+    out.append("}");
+    var result = out.toString();
     return result.endsWith("{}") ? null : result;
   }
 
@@ -114,7 +114,7 @@ public class Converter {
     return (methodName.startsWith("get") || methodName.startsWith("is")) && !methodName.equals("getClass");
   }
 
-  private void processProperty(String propertyName, Method method, StringBuilder out, Map<String, List<String>> methodAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  private void processProperty(StringBuilder out, String propertyName, Method method, Map<String, List<String>> nonRuntimeAnnotations) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     var fieldBuffer = new StringBuilder();
 
     if (propertyName == null) return;
@@ -139,10 +139,10 @@ public class Converter {
 
     fieldBuffer.append(propertyName);
 
-    if (!methodAnnotations.isEmpty())
-      for (var annotation : methodAnnotations.getOrDefault(method.getName(), emptyList()))
-        if (annotation.contains("Nullable;"))
-          fieldBuffer.append("?");
+    if (!nonRuntimeAnnotations.isEmpty()) {
+      for (var annotation : nonRuntimeAnnotations.getOrDefault(method.getName(), emptyList()))
+        if (annotation.contains("Nullable;")) fieldBuffer.append("?");
+    }
 
     var type = method.getReturnType();
     var genericType = method.getGenericReturnType();
