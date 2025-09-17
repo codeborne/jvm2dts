@@ -123,6 +123,6 @@ public class Main {
 
   private static boolean isAnnotated(Class<?> cls, Set<String> annotations) {
     var result = stream(cls.getAnnotations()).anyMatch(a -> annotations.contains(a.annotationType().getName()));
-    return result || cls.getDeclaringClass() == null || isAnnotated(cls.getDeclaringClass(), annotations);
+    return result || cls.getDeclaringClass() != null && isAnnotated(cls.getDeclaringClass(), annotations);
   }
 }
