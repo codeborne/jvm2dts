@@ -38,7 +38,7 @@ public class Converter {
     this.typeMapper = typeMapper;
   }
 
-  public static String convertName(Class<?> clazz) {
+  public static String tsName(Class<?> clazz) {
     var name = clazz.getName();
     name = name.substring(name.lastIndexOf('.') + 1).replace("$", "").replace(";", "");
     return name;
@@ -54,7 +54,7 @@ public class Converter {
   }
 
   private String convertEnum(Class<?> clazz) {
-    var output = new StringBuilder("enum ").append(convertName(clazz)).append(" {");
+    var output = new StringBuilder("enum ").append(tsName(clazz)).append(" {");
 
     try {
       var enumConstants = clazz.getEnumConstants();
@@ -74,7 +74,7 @@ public class Converter {
   }
 
   private String convertClass(Class<?> clazz) {
-    var out = new StringBuilder("interface ").append(convertName(clazz)).append(" {");
+    var out = new StringBuilder("interface ").append(tsName(clazz)).append(" {");
     var nonRuntimeAnnotations = new LinkedHashMap<String, List<String>>();
 
     try {
@@ -192,7 +192,7 @@ public class Converter {
       var type = typeMapper.getSimpleTSType(fieldType);
       if (type != null) typeBuffer.append(type);
       else {
-        typeBuffer.append(convertName(fieldType));
+        typeBuffer.append(tsName(fieldType));
         typeBuffer.append("<");
         for (int j = 0; j < parameterTypes.length; j++) {
           if (j > 0) typeBuffer.append(",");

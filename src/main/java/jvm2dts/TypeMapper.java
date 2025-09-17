@@ -10,7 +10,7 @@ import java.time.zone.ZoneOffsetTransition;
 import java.time.zone.ZoneOffsetTransitionRule;
 import java.util.*;
 
-import static jvm2dts.Converter.convertName;
+import static jvm2dts.Converter.tsName;
 
 public class TypeMapper {
   private Map<Class<?>, String> map = new HashMap<>();
@@ -72,6 +72,6 @@ public class TypeMapper {
 
   public String getTSType(Class<?> type) {
     var simple = getSimpleTSType(type);
-    return simple != null ? simple : convertName(type);
+    return simple != null ? simple : tsName(type);
   }
 }

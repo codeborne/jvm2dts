@@ -19,7 +19,7 @@ public class Main {
     @Parameter
     private List<String> packages = new ArrayList<>();
 
-    @Parameter(names = {"-e", "-exclude"}, description = "Excludes classes in the generation matching a Java RegExp pattern")
+    @Parameter(names = {"-e", "-exclude"}, description = "Excludes classes in the generation with qualified name matching a RegExp")
     private String excludeRegex;
 
     @Parameter(names = {"-c", "-cast"}, description = "Comma-separated key=value map to make classnames matching the key into specified value")
@@ -69,13 +69,11 @@ public class Main {
       Files.walk(basePath)
         .filter(Files::isRegularFile)
         .filter(path -> path.getFileName().toString().endsWith(".class"))
-        .filter(path -> {
+        .map(path -> toClassName(path, basePath))
+        .filter(className -> {
           if (exclude == null) return true;
-          var fileName = path.getFileName().toString();
-          var className = fileName.substring(0, fileName.lastIndexOf('.'));
           return !className.matches(exclude);
         })
-        .map(path -> toClassName(path, basePath))
         .filter(className -> isInPackage(className, packages))
         .sorted()
         .forEach(className -> processClass(className, converter, parsedArgs.dataOnly, withAnnotations));
