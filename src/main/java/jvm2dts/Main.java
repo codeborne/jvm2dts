@@ -28,7 +28,7 @@ public class Main {
     @Parameter(names = {"-d", "-data-only"}, description = "Process only data classes (which have implemented equals), but also enums & interfaces")
     private boolean dataOnly;
 
-    @Parameter(names = {"-annotated"}, description = "Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files), but also enums & interfaces")
+    @Parameter(names = {"-a", "-annotated"}, description = "Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files), but also enums & interfaces")
     private String withAnnotations;
 
     @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")

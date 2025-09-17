@@ -23,8 +23,10 @@ Usage: <main class> [options]
     -d, -data-only
       Find only data classes (which have implemented equals), but also enums & interfaces
       Default: false
+    -a, -annotated
+      Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files), but also enums & interfaces  
     -e, -exclude
-      Excludes classes in the generation matching a Java RegExp pattern
+      Excludes fully qualified class names in the generation matching a RegExp pattern
     -excludeDir
       Comma-separated list to filter out package names when using classesDir
 ```
@@ -109,6 +111,7 @@ into a ``*.ts`` file instead
 ### Nullability
 
 jvm2dts can read _Nullable_ annotations and will append ``?`` to the name of a variable.
+Same is done with Optional<T> types.
 
 ### JsonProperty (from [com.fasterxml.jackson.core/jackson-annotations](https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations))
 
