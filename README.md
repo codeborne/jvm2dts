@@ -24,7 +24,7 @@ Usage: <main class> [options]
       Find only data classes (which have implemented equals), but also enums & interfaces
       Default: false
     -a, -annotated
-      Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files), but also enums & interfaces  
+      Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files), comma-separated
     -e, -exclude
       Excludes fully qualified class names in the generation matching a RegExp pattern
     -excludeDir

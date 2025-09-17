@@ -28,7 +28,7 @@ public class Main {
     @Parameter(names = {"-d", "-data-only"}, description = "Process only data classes (which have implemented equals), but also enums & interfaces")
     private boolean dataOnly;
 
-    @Parameter(names = {"-a", "-annotated"}, description = "Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files), but also enums & interfaces")
+    @Parameter(names = {"-a", "-annotated"}, description = "Process only annotated classes with comma-separated annotations (note that lombok annotations are not visible in class files)")
     private String withAnnotations;
 
     @Parameter(names = {"-classesDir"}, description = "Recursively look for classes from a location")
@@ -97,12 +97,12 @@ public class Main {
 
   private static void processClass(String className, Converter converter, boolean dataOnly, Set<String> withAnnotations) {
     try {
-      Class<?> clazz = Class.forName(className);
-      if ((dataOnly && !isData(clazz) || withAnnotations != null && !isAnnotated(clazz, withAnnotations)) &&
-        !clazz.isEnum() && !clazz.isInterface()) {
+      var cls = Class.forName(className);
+      if (dataOnly && !isData(cls) && !cls.isEnum() && !cls.isInterface() ||
+          withAnnotations != null && !isAnnotated(cls, withAnnotations)) {
         return;
       }
-      var converted = converter.convert(clazz);
+      var converted = converter.convert(cls);
       if (converted != null) {
         out.println("// " + className);
         out.println("export " + converted);
@@ -121,7 +121,8 @@ public class Main {
     }
   }
 
-  private static boolean isAnnotated(Class<?> clazz, Set<String> annotations) {
-    return stream(clazz.getAnnotations()).anyMatch(a -> annotations.contains(a.annotationType().getName()));
+  private static boolean isAnnotated(Class<?> cls, Set<String> annotations) {
+    var result = stream(cls.getAnnotations()).anyMatch(a -> annotations.contains(a.annotationType().getName()));
+    return result || cls.getDeclaringClass() == null || isAnnotated(cls.getDeclaringClass(), annotations);
   }
 }
